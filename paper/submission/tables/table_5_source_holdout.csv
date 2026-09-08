@@ -1,0 +1,4 @@
+Model,IID F1,Direction A F1,Dir A Degradation,Direction B F1,Dir B Degradation,Directional Asymmetry (A - B)
+Quantum Kernel (8D),0.8752,0.7034,0.1718 (19.63%),0.6693,0.2059 (23.53%),+0.0342 (4.86%)
+Classical RBF (8D),0.8731,0.7201,0.1530 (17.52%),0.71,0.1631 (18.68%),+0.0101 (1.40%)
+Linear SVM (8D),0.8465,0.7205,0.1260 (14.89%),0.7048,0.1417 (16.74%),+0.0157 (2.18%)

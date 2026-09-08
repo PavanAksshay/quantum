@@ -1,0 +1,4 @@
+Regime,Quantum F1,RBF F1,Linear F1,Q - RBF Delta,Q - RBF Rel (%),Q - Linear Delta,Outcome
+MeAJOR IID 8D (Anchor 1),0.8752 ± 0.0019,0.8731 ± 0.0014,0.8465 ± 0.0017,+0.0021,+0.24%,+0.0287,Parity / Marginal Edge
+Direction A 8D (Anchor 2),0.7034 ± 0.0187,0.7201 ± 0.0148,0.7205 ± 0.0243,-0.0167,-2.32%,-0.0171,Quantum Disadvantage
+Direction B 8D (Anchor 3),0.6693 ± 0.0075,0.7100 ± 0.0047,0.7048 ± 0.0391,-0.0407,-5.74%,-0.0356,Quantum Disadvantage

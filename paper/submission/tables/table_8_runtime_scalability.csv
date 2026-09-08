@@ -1,0 +1,5 @@
+Dimension (Qubits),Quantum Total (s),RBF Total (s),Pipeline Runtime Ratio,Kernel Construction (Quantum),Kernel Construction (RBF),Workload Status
+8,12.95,6.74,1.92x,6.20 s,~0.45 s,Feasible
+10,25.13,6.49,3.88x,18.50 s,~0.45 s,Feasible
+12,85.44,6.55,13.04x,78.90 s,~0.45 s,Feasible (Near-tie with RBF)
+16,>1000 s (est),6.62,>150x,>1000 s,~0.45 s,Memory-infeasible (>10.5 GB complex128 RAM)

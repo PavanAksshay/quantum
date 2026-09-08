@@ -1,0 +1,14 @@
+numpy
+pandas
+scikit-learn
+matplotlib
+seaborn
+xgboost
+torch
+transformers
+sentencepiece
+pennylane
+fastapi
+uvicorn
+joblib
+mlflow

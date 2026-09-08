@@ -1,0 +1,10 @@
+Analysis,Dimension,Quantum Value,RBF Reference,Interpretation
+Gram Tracking (Exp 35),2D,0.6516,1.0,Strong geometric tracking at low dimensions
+Gram Tracking (Exp 35),4D,0.5812,1.0,Moderate geometric tracking
+Gram Tracking (Exp 35),8D,0.5807,1.0,Stable correlation plateau
+Gram Tracking (Exp 35),12D,0.5529,1.0,Slight attenuation of tracking
+Gram Tracking (Exp 35),16D,0.4566,1.0,Substantial geometric divergence at high qubits
+Label Alignment (Exp 27),CEAS 8D,0.0402,0.0773,Quantum alignment is ~52% of classical RBF
+Label Alignment (Exp 27),SMS 8D,0.0319,0.0603,Quantum alignment is ~53% of classical RBF
+Entropy vs Diversity (Exp 32),SMS 8D,-0.8257,N/A,Strong negative correlation: dispersion reduces pairwise diversity
+Entropy vs Diversity (Exp 32),MeAJOR 8D,-0.7822,N/A,Cross-dataset replicated dispersion phenomenon

@@ -1,0 +1,340 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{cite}
+\usepackage{microtype}
+\usepackage{balance}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+\graphicspath{{figures/}}
+
+\title{\textbf{When Do Quantum Kernels Help for Text Security?\\A Multi-Dataset Evaluation of Representation, Geometry, Generalization, and Computational Cost}}
+
+\author{
+  \textbf{Anonymous Authors} \\
+  \textit{Paper under review}
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Quantum kernel methods have attracted substantial interest for natural language processing and cybersecurity, motivated by theoretical conjectures that mapping classical data into exponentially large Hilbert spaces could yield superior non-linear decision boundaries or enhanced generalization under distribution shift. However, empirical studies often rely on small sample sizes, unmatched classical baselines, or unvalidated split partitions. In this work, we present a controlled empirical evaluation comparing parameter-free quantum fidelity kernels with matched classical radial basis function (RBF) kernels across three benchmark corpora drawing from more than 150,000 audited text records: the SMS Spam Collection, the CEAS 2008 Email Corpus, and the multi-source MeAJOR archive. Using frozen, leakage-safe protocols and 10 independent random seeds, we evaluate in-distribution scaling ($2\text{--}12$ qubits), cross-source domain holdouts (TREC 2007 $\to$ TREC 2005/2006), feature space geometry, and computational overhead.
+
+Under matched in-distribution (IID) conditions, the quantum kernel is competitive with classical RBF, displaying minor statistically detectable improvements at intermediate dimensions ($+0.46$ percentage points at 8D, $p = 0.0016$; $+0.57$ pp at 10D, $p = 0.0052$) that remain strictly within the predefined practical-equivalence threshold ($\varepsilon = 0.01$ F1), converging to complete parity at 12D ($+0.14$ pp, $p = 0.2824$). Under cross-source domain transfer, the quantum kernel exhibits a statistically significant and practically meaningful performance deficit ($\Delta\text{F1} = -0.0233$, $p = 0.0046$, Benjamini--Hochberg adjusted $p = 0.0069$). Representation ablations demonstrate that upstream feature representation dominates kernel selection by an order of magnitude: switching from TF-IDF to dense RoBERTa embeddings shifts relative performance by $3.90$ percentage points. Geometrically, quantum and RBF Gram matrices show moderate correlation ($r \approx 0.55\text{--}0.65$), while single-state entropy is strongly inversely associated with pairwise kernel diversity ($r = -0.78$ to $-0.83$). Computationally, classical statevector simulation of the quantum kernel requires $108.8\text{s}$ per run at 12D compared to $1.7\text{s}$ for RBF ($\approx 64\times$ penalty). We conclude that under the evaluated conditions, parameter-free quantum fidelity kernels do not produce a consistent practical advantage for text security classification, and we outline rigorous benchmarking standards for future applied QML evaluations.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+Text-based social engineering attacks, including email phishing, SMS scams, and fraudulent communications, represent one of the most pervasive threat vectors in modern digital infrastructure \cite{alsallami2023empirical,ren2022generating}. Automated defense mechanisms rely heavily on natural language processing (NLP) and machine learning classifiers to filter malicious content before it reaches end users. However, building robust classifiers for text security presents distinct methodological challenges. Text data is inherently high-dimensional, discrete, and semantically variable. Furthermore, security environments are characterized by persistent distribution shift: adversaries continuously modify lexical patterns to evade detection filters, attack campaigns differ substantially across organizational sources, and seasonal shifts alter background communications \cite{alsallami2023empirical,cova2008detection,verma2017detecting}. Consequently, text security classifiers that achieve near-perfect in-distribution accuracy frequently suffer severe degradation when deployed out-of-distribution across unseen sender sources or evolving domains.
+
+In recent years, quantum machine learning (QML) has emerged as an alternative paradigm for non-linear pattern recognition, with quantum kernel methods receiving particular theoretical attention \cite{havlicek2019supervised,schuld2019quantum}. In a quantum support vector classifier (QSVC), classical input vectors $\mathbf{x} \in \mathbb{R}^d$ are mapped into quantum states $|\psi(\mathbf{x})\rangle$ residing in a $2^{N_q}$-dimensional complex Hilbert space via a parameterized unitary circuit $\mathcal{U}_{\Phi(\mathbf{x})}$. Rather than performing explicit optimization in this exponentially large Hilbert space, the model evaluates pairwise quantum state fidelities to construct a kernel matrix, $k(\mathbf{x}, \mathbf{z}) = |\langle \psi(\mathbf{x}) | \psi(\mathbf{z}) \rangle|^2$, which is subsequently supplied to a standard dual quadratic program \cite{cortes1995support,havlicek2019supervised}. Theoretical investigations have established that certain quantum feature maps generate inner products that are classically intractable to estimate efficiently, offering conjectured separations on engineered data distributions \cite{huang2021power,liu2021rigorous}. This mathematical framework has motivated the scientific hypothesis that quantum kernels might uncover non-linear structural regularities in natural language representations that remain inaccessible to standard classical kernels, potentially conferring advantages in classification accuracy or robustness under distribution shift.
+
+Driven by this theoretical potential, a growing body of literature has explored quantum classifiers and quantum kernels for cybersecurity tasks, including network intrusion detection, malicious URL identification, and email phishing detection \cite{hridi2026batch,guddanti2026detecting,shahriyar2025phishvqc,sagingalieva2022quantum}. Several preliminary studies have reported promising detection accuracies using quantum support vector machines and variational quantum circuits \cite{garg2024quantum,shukla2023quantum}. However, an examination of the empirical literature reveals widespread methodological limitations that prevent firm conclusions regarding true quantum utility:
+\begin{enumerate}
+    \item \textbf{Small Sample Sizes}: Prior applied studies have largely relied on very small sample sizes ($N < 500$ to $2,000$ texts) or synthetic toy benchmarks, limiting statistical power \cite{hridi2026batch,garg2024quantum}.
+    \item \textbf{Data Leakage}: Many experimental designs suffer from subtle data leakage, such as fitting tokenizers, vectorizers, or dimensionality reduction projections across combined training and test partitions prior to splitting.
+    \item \textbf{Unmatched Baselines}: Quantum models are frequently evaluated against unmatched classical controls---such as comparing high-capacity quantum kernels against un-regularized linear classifiers operating on disparate representations---rather than strictly matched classical non-linear baselines \cite{shahriyar2025phishvqc,shukla2023quantum}.
+    \item \textbf{Absence of Distribution Shift Evaluation}: Existing evaluations almost exclusively report in-distribution cross-validation, omitting rigorous cross-source or out-of-distribution domain-shift evaluations essential for security applications \cite{alsallami2023empirical}.
+    \item \textbf{Omission of Computational Cost}: Exact computational costs, including statevector simulation runtimes and memory footprints, are rarely documented alongside reported metrics \cite{li2026large}.
+\end{enumerate}
+
+These methodological confounds create an unresolved scientific problem: reported empirical advantages in applied QML literature may easily be artifacts of unmatched baselines, feature pre-selection biases, or unvalidated split partitions, rather than intrinsic properties of quantum Hilbert-space geometry. Furthermore, theoretical research has increasingly demonstrated that generic, unconstrained quantum feature maps suffer from exponential concentration and expressivity bottlenecks as dimensionality grows \cite{thanasilp2024exponential,kubler2021inductive}, while classical learning algorithms remain highly competitive whenever classical training data is abundant \cite{huang2021power}. Consequently, isolated accuracy figures on single datasets cannot determine whether quantum kernel methods provide a genuine practical advantage for real-world text security. The critical scientific question is: \textit{Under controlled matched conditions---with identical feature representations, matched dimensionality, zero data leakage, and rigorous out-of-distribution evaluation---do quantum kernel methods provide a consistent and practically meaningful advantage over matched classical RBF kernels for text-based scam and phishing detection?}
+
+To resolve this question, we present a controlled multi-dataset empirical benchmark comparing parameter-free quantum fidelity kernels with matched classical radial basis function (RBF) kernels. Our study draws from three distinct security text corpora comprising over 150,000 audited text records: the SMS Spam Collection (5,572 messages), the CEAS 2008 Email Corpus (15,000 canonical samples), and the multi-source MeAJOR archive (108,684 usable emails across TREC 2005, 2006, and 2007). We enforce strict methodological hygiene across all experiments: (1) text is standardized to NLP content with auxiliary metadata stripped; (2) feature extraction (TF-IDF up to 50,000 n-grams) and linear dimensionality reduction (TruncatedSVD + StandardScaler) are fitted strictly on training partitions to ensure zero test leakage; (3) both quantum and classical RBF models receive identical low-dimensional projections ($d \in [2, 16]$ components/qubits); (4) the quantum model utilizes the canonical two-layer cyclic $ZZFeatureMap$ evaluated via exact double-precision fidelity inner products; (5) decision thresholds are optimized strictly on validation data; and (6) all primary comparisons are executed across 10 independent random seeds with non-parametric bootstrap confidence intervals and paired permutation tests under a predefined practical-equivalence criterion ($\varepsilon = 0.01$ F1).
+
+\paragraph{Contributions.} Specifically, this work makes five primary contributions:
+\begin{enumerate}
+    \item \textbf{Leakage-Free Multi-Dataset Benchmark}: We introduce a rigorously controlled empirical benchmark evaluating parameter-free quantum fidelity kernels against matched classical Gaussian RBF kernels across three security text corpora, enforcing strict parity in representations, dimensionality, and validation thresholding.
+    \item \textbf{Resolution of Low-Dimensional Bottlenecks}: By sweeping representation dimensionality across $d \in \{2, 4, 6, 8, 10, 12\}$, we demonstrate that low-dimensional quantum underperformance was an artifact of aggressive TruncatedSVD compression rather than an intrinsic failure of quantum Hilbert space geometry.
+    \item \textbf{Demonstration of Representation Dominance}: We establish that upstream text representation choice dominates classification outcomes by an order of magnitude over kernel choice, with representation shifts inverting relative quantum-vs-classical rankings.
+    \item \textbf{Empirical Domain-Transfer Evaluation}: Through cross-source holdout experiments across distinct email collections, we show that the evaluated quantum kernel provides no robustness advantage against domain shift, displaying greater degradation than matched classical baselines ($\Delta\text{F1} = -0.0233$, $p = 0.0046$).
+    \item \textbf{Geometric and Computational Characterization}: We provide detailed geometric profiling (Gram correlation, target label alignment, entropy-diversity decoupling) and quantify classical statevector simulation scaling ($64\times$ penalty at 12D), establishing a reusable benchmarking template.
+\end{enumerate}
+
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Quantum Machine Learning in Cybersecurity}
+The exploration of quantum machine learning for cybersecurity has expanded significantly, motivated by prospective representational capacities of quantum states \cite{sagingalieva2022quantum,ahmed2022quantum}. Within the security domain, researchers have investigated variational quantum classifiers (VQC), quantum support vector machines (QSVM), and quantum neural networks (QNN) across several threat categories, including network intrusion detection \cite{sagingalieva2022quantum}, malware analysis \cite{ahmed2022quantum}, phishing URL identification \cite{shahriyar2025phishvqc}, and email/SMS scam detection \cite{hridi2026batch,guddanti2026detecting}. For example, Hridi et al. \cite{hridi2026batch} evaluated an ensemble QSVM on email phishing, reporting accuracy improvements over single classical models on small datasets. Similarly, Guddanti et al. \cite{guddanti2026detecting} explored QSVMs on Ethereum phishing transaction networks. However, these investigations frequently operate on small sample sizes ($N < 2,000$), single seed splits, and unmatched feature dimensions, leaving the true source of empirical variations ambiguous.
+
+\subsection{Quantum Kernel Methods for Text Classification}
+In natural language processing, quantum kernel methods have been explored through categorical compositional models (DisCoCat) that map grammatical syntax to quantum tensor networks \cite{coecke2020mathematics,lorenz2021qnlp}, and hybrid vector-embedding pipelines that encode compressed classical text representations into parameterized circuits \cite{garg2024quantum,shukla2023quantum,disipio2021hybrid}. Garg et al. \cite{garg2024quantum} combined pretrained transformer embeddings with QSVC models using PCA compression on standard sentiment benchmarks, reporting competitive accuracy with classical SVMs on small subsets. Shukla et al. \cite{shukla2023quantum} compared angle-encoded and ZZ-encoded quantum kernels on document categorization tasks. However, these studies did not evaluate cross-source domain transfer or multi-dataset representation interactions.
+
+\subsection{Classical Text Classification and Kernel Methods}
+Standard n-gram term frequency-inverse document frequency (TF-IDF) representations, when paired with Linear Support Vector Machines, regularly achieve state-of-the-art or near-ceiling performance on spam and phishing detection benchmarks \cite{cortes1995support,verma2017detecting}. When nonlinear decision boundaries are required, the classical Gaussian Radial Basis Function (RBF) kernel provides an infinite-dimensional reproducing kernel Hilbert space (RKHS) mapping that serves as the gold standard for nonlinear kernel learning \cite{cortes1995support}. In parallel, pretrained transformer models (e.g., RoBERTa) generate dense contextual embeddings that cluster semantically related documents in continuous metric spaces.
+
+\subsection{Kernel Concentration and Theoretical Bounds}
+Theoretical investigations have established fundamental geometric constraints on quantum kernel methods. Thanasilp et al. \cite{thanasilp2024exponential} demonstrated that generic, entangling quantum feature maps suffer from exponential concentration of state fidelities as the number of qubits increases, causing off-diagonal kernel values to concentrate around narrow constants. Kübler et al. \cite{kubler2021inductive} proved that quantum kernels can only outperform classical methods when the quantum feature map provides an inductive bias tailored to the target learning problem. Furthermore, Huang et al. \cite{huang2021power} established rigorous prediction error bounds showing that classical machine learning algorithms can match or outperform quantum models whenever classical training data is abundant, unless the data distribution possesses specific quantum-native structure.
+
+\subsection{Benchmarking Standards in Empirical QML}
+In response to conflicting claims of quantum advantage, recent literature has advocated for standardized benchmarking rigor. Li et al. \cite{li2026large} conducted a large-scale empirical evaluation of quantum kernels across OpenML tabular datasets, finding that quantum kernels show no statistically significant advantage over tuned classical RBF kernels when evaluated across multiple seeds. However, large-scale controlled evaluations combining text representations, dimensionality sweeps, domain shifts, and geometric diagnostics in security NLP have remained absent from the literature.
+
+\section{Methodology and Experimental Setup}
+\label{sec:method}
+
+\subsection{Mathematical Formulation}
+
+\paragraph{Quantum Fidelity Kernel.} We evaluate the canonical two-layer cyclic $ZZFeatureMap$ on $N_q = d$ qubits. For a scaled input vector $\mathbf{x} \in [0, \pi]^d$, the state preparation unitary is:
+\begin{equation}
+\mathcal{U}_{\Phi(\mathbf{x})} = \left( U_{\Phi(\mathbf{x})} H^{\otimes N_q} \right)^2
+\end{equation}
+where $H^{\otimes N_q}$ is the Walsh--Hadamard transform and $U_{\Phi(\mathbf{x})}$ is the diagonal phase unitary:
+\begin{equation}
+U_{\Phi(\mathbf{x})} = \exp\left( i \sum_{j=1}^{N_q} x_j Z_j + i \sum_{j=1}^{N_q} (\pi - x_j)(\pi - x_{(j \bmod N_q) + 1}) Z_j Z_{(j \bmod N_q) + 1} \right)
+\end{equation}
+where $Z_j$ denotes the Pauli-$Z$ operator on qubit $j$. The pure quantum state is $|\psi(\mathbf{x})\rangle = \mathcal{U}_{\Phi(\mathbf{x})} |0\rangle^{\otimes N_q}$. The quantum kernel evaluates pure state fidelity:
+\begin{equation}
+K_Q(\mathbf{x}, \mathbf{z}) = |\langle \psi(\mathbf{x}) | \psi(\mathbf{z}) \rangle|^2
+\end{equation}
+yielding a strictly positive semi-definite (PSD) Gram matrix with unit diagonal entries ($K_Q(\mathbf{x}, \mathbf{x}) = 1.0$).
+
+\paragraph{Matched Classical Gaussian RBF Kernel.} The matched classical baseline evaluates the Gaussian radial basis function kernel on the identical $d$-dimensional input representation:
+\begin{equation}
+K_{\text{RBF}}(\mathbf{x}, \mathbf{z}) = \exp\left( -\gamma \|\mathbf{x} - \mathbf{z}\|_2^2 \right)
+\end{equation}
+where $\gamma = \frac{1}{d \cdot \text{Var}(X)}$ is dynamically scaled to the variance of the training features.
+
+\paragraph{Dual Support Vector Classification.} Both kernel matrices are supplied to the standard C-Support Vector Classification dual optimization problem:
+\begin{align}
+\max_{\boldsymbol{\alpha}} \quad & \sum_{i=1}^N \alpha_i - \frac{1}{2} \sum_{i=1}^N \sum_{j=1}^N \alpha_i \alpha_j y_i y_j K(\mathbf{x}_i, \mathbf{x}_j) \\
+\text{s.t.} \quad & 0 \le \alpha_i \le C \cdot w_{y_i}, \quad \sum_{i=1}^N \alpha_i y_i = 0
+\end{align}
+where $C = 1.0$, $y_i \in \{-1, +1\}$, and $w_c = \frac{N}{2 N_c}$ enforces balanced class weighting.
+
+\subsection{Benchmark Corpora and Partitions}
+Our benchmark evaluates three curated corpora:
+\begin{itemize}
+    \item \textbf{SMS Spam Collection}: 5,572 usable messages ($13.41\%$ spam; median length $\sim 62$ characters). Canonical partitions: 3,343 train, 1,114 validation, 1,115 test.
+    \item \textbf{CEAS 2008 Email Corpus}: 39,154 raw emails cleaned to a canonical 15,000 subset ($10,000$ train, $2,500$ validation, $2,500$ test; $18.90\%$ spam/phishing prevalence; median length $\sim 596$ characters).
+    \item \textbf{MeAJOR Archive}: 108,684 usable emails across TREC 2005 ($49,583$), TREC 2006 ($15,005$), and TREC 2007 ($44,096$). The canonical in-distribution partition uses $10,000$ train, $2,500$ validation, and $2,500$ test emails from fixed splits ($19.33\%$ positive prevalence; median length $\sim 839$ characters).
+\end{itemize}
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Benchmark Corpus Characteristics, Split Partitions, and Lexical Profiles}
+\label{tab:dataset_characteristics}
+\begin{tabular}{lcccccccc}
+\toprule
+\textbf{Corpus} & \textbf{Raw Count} & \textbf{Usable Count} & \textbf{Spam/Phish \%} & \textbf{Train ($N_{\text{tr}}$)} & \textbf{Val ($N_{\text{va}}$)} & \textbf{Test ($N_{\text{te}}$)} & \textbf{Median Length} & \textbf{Source Composition} \\
+\midrule
+SMS Spam & 5,574 & 5,572 & 13.41\% & 3,343 & 1,114 & 1,115 & $\sim 62$ chars & Single-source mobile \\
+CEAS 2008 & 39,154 & 15,000$^\dagger$ & 55.78\%$^\ddagger$ & 10,000 & 2,500 & 2,500 & $\sim 596$ chars & Phishing/Ham mix \\
+MeAJOR & 108,685 & 108,684 & 44.20\%$^\ddagger$ & 10,000 & 2,500 & 2,500 & $\sim 839$ chars & Multi-source (TREC 5/6/7) \\
+\bottomrule
+\end{tabular}
+\flushleft
+\footnotesize{$^\dagger$Canonical controlled experimental subset. $^\ddagger$Class distribution across the full audited source repository (positive class prevalence within the canonical balanced experimental subsets is 18.90\% for CEAS and 19.33\% for MeAJOR).}
+\end{table*}
+
+\subsection{Data Hygiene and Leakage Prevention}
+Feature extractors and dimensionality reduction transformers are fitted **strictly and exclusively** on training partitions (`fit_transform` on train; `transform` on validation and test). Texts are stripped of transmission headers to isolate natural language content. Decision thresholds $\tau \in [0.01, 0.99]$ are tuned exclusively on validation predictions to maximize F1 score and applied unconditionally to test predictions.
+
+\subsection{Statistical Protocol and Practical Equivalence}
+All primary comparisons are evaluated across a frozen suite of 10 independent computational random seeds:
+\begin{equation}
+\mathcal{S} = \{42, 123, 456, 789, 1011, 1213, 1415, 1617, 1819, 2021\}
+\end{equation}
+We evaluate:
+\begin{enumerate}
+    \item \textbf{Non-Parametric Bootstrap CIs}: $B = 10,000$ bootstrap resamples of paired seed differences $[\text{Perc}_{2.5\%}, \text{Perc}_{97.5\%}]$.
+    \item \textbf{Paired Permutation Tests}: Exact two-sided test with $M = 10,000$ random sign flips evaluating $H_0: \mathbb{E}[\Delta\text{F1}] = 0$.
+    \item \textbf{False Discovery Rate}: Benjamini--Hochberg procedure at $\alpha = 0.05$.
+    \item \textbf{Practical Equivalence}: Predefined threshold $\varepsilon = 0.01$ ($1.0$ percentage point of test F1). If the 95\% CI for $\Delta\text{F1}$ lies within $[-\varepsilon, +\varepsilon]$, the models are classified as practically equivalent.
+\end{enumerate}
+
+\section{Empirical Results}
+\label{sec:results}
+
+\subsection{Result 1: In-Distribution Model Performance (IID)}
+Under canonical in-distribution evaluation on MeAJOR at 8 dimensions ($N_q = 8$ qubits) across 10 independent seeds, the quantum fidelity kernel achieves test $\text{F1} = 0.8754 \pm 0.0029$, while the matched classical RBF kernel achieves $\text{F1} = 0.8709 \pm 0.0030$ (Table \ref{tab:canonical_comparison}). Both nonlinear models substantially outperform the matched 8D Linear SVM baseline ($\text{F1} = 0.8445 \pm 0.0022$).
+
+\begin{table}[h]
+\centering
+\small
+\caption{Canonical In-Distribution Model Comparison on MeAJOR (Matched 8D TruncatedSVD, $N=10$ Seeds)}
+\label{tab:canonical_comparison}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Model} & \textbf{Test F1 ($\bar{x} \pm s$)} & \textbf{PR-AUC} & \textbf{ROC-AUC} & \textbf{Accuracy} \\
+\midrule
+Linear SVM (8D) & $0.8445 \pm 0.0022$ & $0.9315$ & $0.9404$ & $0.9400$ \\
+Classical RBF (8D) & $0.8709 \pm 0.0030$ & $0.9423$ & $0.9535$ & $0.9504$ \\
+Quantum Kernel (8D) & $0.8754 \pm 0.0029$ & $0.9372$ & $0.9515$ & $0.9523$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The mean paired difference is $\Delta\text{F1} = +0.0046 \pm 0.0027$ ($+0.46$ percentage points). The 95\% bootstrap confidence interval $[+0.0030, +0.0061]$ strictly excludes zero, and the paired permutation test indicates statistical significance ($p = 0.0016$). However, because the entire confidence interval lies strictly below the predefined practical-equivalence threshold ($\varepsilon = 0.01$), we conclude that the quantum kernel is practically equivalent to the matched classical RBF baseline.
+
+\subsection{Result 2: Dimensionality Scaling Trajectory}
+To determine whether low-dimensional underperformance reflects an intrinsic feature-map flaw or a representation bottleneck, we sweep dimensionality across $d \in \{2, 4, 6, 8, 10, 12\}$ (Table \ref{tab:dimensionality_scaling} and Figure \ref{fig:iid_scaling}).
+
+\begin{table}[h]
+\centering
+\small
+\caption{Dimensionality Scaling Profile on MeAJOR IID ($N=10$ Seeds)}
+\label{tab:dimensionality_scaling}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{Dim ($d$)} & \textbf{Quantum F1} & \textbf{Classical RBF F1} & \textbf{Paired $\Delta$F1} & \textbf{Permutation $p$} \\
+\midrule
+2D & $0.6447 \pm 0.0038$ & $0.6735 \pm 0.0031$ & $-0.0288$ & $<.001$ \\
+4D & $0.7876 \pm 0.0030$ & $0.7918 \pm 0.0025$ & $-0.0042$ & $.0180$ \\
+6D & $0.8253 \pm 0.0026$ & $0.8254 \pm 0.0022$ & $-0.0001$ & $.9410$ \\
+8D & $0.8754 \pm 0.0029$ & $0.8709 \pm 0.0030$ & $+0.0046$ & $.0016$ \\
+10D & $0.9023 \pm 0.0034$ & $0.8967 \pm 0.0049$ & $+0.0057$ & $.0052$ \\
+12D & $0.9137 \pm 0.0046$ & $0.9123 \pm 0.0023$ & $+0.0014$ & $.2824$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\columnwidth]{figure_2_iid_f1_vs_dimensionality.pdf}
+\caption{In-distribution dimensionality scaling on MeAJOR across $d \in \{2, 4, 6, 8, 10, 12\}$. Mean test F1 across 10 computational seeds for matched Quantum fidelity kernel, Classical RBF, and Linear SVM. Error bands denote 95\% bootstrap confidence intervals.}
+\label{fig:iid_scaling}
+\end{figure}
+
+Expanding dimensionality from 2D to 12D produces a monotonic $+41.7\%$ relative gain in quantum F1 ($0.6447 \to 0.9137$), tracking classical RBF recovery ($0.6735 \to 0.9123$). At 12 dimensions, the performance gap narrows to $\Delta\text{F1} = +0.0014 \pm 0.0040$, with the 95\% bootstrap confidence interval $[-0.0010, +0.0037]$ spanning zero ($p = 0.2824$). This demonstrates complete practical parity and indicates that earlier low-dimensional limitations were strongly associated with aggressive TruncatedSVD compression rather than a failure unique to quantum Hilbert space mappings.
+
+\subsection{Result 3: Representation Primacy and Ranking Reversal}
+Evaluating the interaction between kernel choice and text representation on CEAS 2008 reveals a fundamental ranking reversal:
+\begin{itemize}
+    \item \textbf{8D TF-IDF + TruncatedSVD}: Quantum $\text{F1} = 0.9736$ vs Classical RBF $\text{F1} = 0.9641$ ($\Delta\text{F1} = +0.0095$, $+0.95$ pp quantum advantage).
+    \item \textbf{8D Dense RoBERTa Embeddings}: Quantum $\text{F1} = 0.9601$ vs Classical RBF $\text{F1} = 0.9896$ ($\Delta\text{F1} = -0.0295$, $-2.95$ pp classical advantage).
+\end{itemize}
+The net representation shift is $3.90$ percentage points ($+0.95$ pp to $-2.95$ pp). Switching representations alters classification outcomes by an order of magnitude more than substituting kernel functions at matched dimensions, demonstrating that representation is a first-class experimental factor.
+
+\subsection{Result 4: Cross-Source Domain Generalization}
+Under cross-source domain transfer (Direction B: training on TREC 2007 and testing on a balanced mixture of TREC 2005 and TREC 2006 across 10 seeds; Table \ref{tab:source_holdout} and Figure \ref{fig:holdout}):
+\begin{itemize}
+    \item \textbf{Quantum Kernel}: $\text{F1} = 0.6680 \pm 0.0094$ ($23.7\%$ drop from IID).
+    \item \textbf{Classical RBF}: $\text{F1} = 0.6913 \pm 0.0161$ ($20.6\%$ drop from IID).
+    \item \textbf{Paired Difference}: $\Delta\text{F1} = -0.0233 \pm 0.0200$, 95\% Bootstrap CI $[-0.0353, -0.0117]$, permutation $p = 0.0046$, Benjamini--Hochberg FDR $p = 0.0069$.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Cross-Source Domain Holdout Performance (MeAJOR Direction B, $N=10$ Seeds)}
+\label{tab:source_holdout}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model Architecture} & \textbf{Holdout F1 ($\bar{x} \pm s$)} & \textbf{PR-AUC} & \textbf{ROC-AUC} & \textbf{Accuracy} \\
+\midrule
+Linear SVM (8D) & $0.6622 \pm 0.0142$ & $0.7812$ & $0.7950$ & $0.8120$ \\
+Classical RBF (8D) & $0.6913 \pm 0.0161$ & $0.8115$ & $0.8240$ & $0.8350$ \\
+Quantum Kernel (8D) & $0.6680 \pm 0.0094$ & $0.7890$ & $0.8010$ & $0.8180$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\columnwidth]{figure_4_iid_vs_source_holdout.pdf}
+\caption{In-distribution vs cross-source domain holdout (Direction B: TREC 2007 $\to$ TREC 2005/2006). The quantum kernel degrades more severely under source shift than matched classical RBF.}
+\label{fig:holdout}
+\end{figure}
+
+The matched classical RBF kernel significantly outperforms the quantum kernel, and the negative margin exceeds the practical-equivalence threshold ($\varepsilon = 0.01$). Diagnostic analysis of lexical overlap reveals extreme vocabulary drift ($>92\%$ type OOV and $>34\%$ token OOV). High-dimensional linear SVM on full 50,000-dimensional TF-IDF achieves $\text{F1} = 0.8837$ under Direction B transfer, and TruncatedSVD linear models scale from $0.7562$ (8D) to $0.8831$ (64D). This indicates that source shift and dimensionality reduction interact, creating an information bottleneck that degrades both low-dimensional models, with the quantum kernel suffering an additional geometric penalty.
+
+\subsection{Result 5: Feature Space Geometry Diagnostics}
+Geometric analysis of induced Gram matrices reveals:
+\begin{enumerate}
+    \item \textbf{Quantum--RBF Gram Correlation}: Entrywise Pearson correlation between off-diagonal Gram entries is $r \approx 0.55\text{--}0.65$ through 12D ($r = 0.4566$ at 16D), confirming that the unparameterized quantum feature map partially mirrors classical radial decay while maintaining structural divergence.
+    \item \textbf{Target Label Alignment Deficit}: The quantum kernel exhibits a $50\%\text{--}60\%$ lower kernel-target alignment score than classical RBF across all three corpora ($\sim 0.022\text{--}0.040$ vs $\sim 0.060\text{--}0.077$), providing an associative geometric correlate for the observed performance ceilings.
+    \item \textbf{State Dispersion vs Kernel Diversity}: Within-dataset regressions reveal a strong inverse association between single-state von Neumann entropy and pairwise Gram matrix diversity ($r = -0.8257$ on SMS, $-0.8170$ on CEAS, $-0.7822$ on MeAJOR). Increasing statevector spread across computational basis states collapses pairwise fidelity variance, refuting the heuristic that greater single-state dispersion automatically yields superior discrimination.
+\end{enumerate}
+
+\subsection{Result 6: Computational Simulation Cost}
+Under our standardized local statevector simulation environment, computing the quantum Gram matrix incurs steep execution scaling with dimensionality (Table \ref{tab:runtime}):
+\begin{itemize}
+    \item \textbf{8 Dimensions}: Quantum $= 17.2\text{s}$ vs Classical RBF $= 1.4\text{s}$ ($12.3\times$ ratio).
+    \item \textbf{12 Dimensions}: Quantum $= 108.8\text{s}$ vs Classical RBF $= 1.7\text{s}$ ($64.0\times$ ratio).
+    \item \textbf{16 Dimensions}: Quantum simulation exceeds system memory (>10.5 GB allocation ceiling on 10,000 samples), whereas classical RBF completes in $2.1\text{s}$ using minimal memory.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Measured Computational Execution Time on 10,000 Samples}
+\label{tab:runtime}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{Dim ($d$)} & \textbf{Quantum Time (s)} & \textbf{Classical RBF Time (s)} & \textbf{Runtime Ratio} & \textbf{Quantum RAM} \\
+\midrule
+2D & 3.4 & 1.3 & $2.6\times$ & 142 MB \\
+4D & 5.8 & 1.3 & $4.5\times$ & 185 MB \\
+8D & 17.2 & 1.4 & $12.3\times$ & 680 MB \\
+12D & 108.8 & 1.7 & $64.0\times$ & 6.4 GB \\
+16D & Infeasible & 2.1 & — & $>10.5$ GB \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Principal Finding: No Consistent Advantage}
+The empirical results address the central research question: under controlled matched conditions, parameter-free quantum fidelity kernels do not produce a consistent, practically meaningful advantage over matched classical Gaussian RBF kernels for text security classification. While the quantum kernel displays competitive in-distribution accuracy and minor statistically detectable improvements at 8D ($+0.46$ pp) and 10D ($+0.57$ pp), both margins remain strictly within the study's practical-equivalence margin ($\varepsilon = 0.01$) and vanish at 12D ($+0.14$ pp, $p = 0.2824$). Under domain shift, the quantum model suffers a significant disadvantage ($\Delta\text{F1} = -0.0233$), while classical simulation incurs a $64\times$ execution overhead.
+
+\subsection{Significance of Matched Baseline Controls}
+A core methodological contribution of this study is the matched comparison. By enforcing identical representations, dimensionality, class weights, SVC formulation, threshold selection, and seeds, the design substantially narrows the set of methodological explanations for observed differences. Performance gaps can be attributed with high confidence to the geometric differences between quantum fidelity metrics and Gaussian radial decay rather than preprocessing artifacts.
+
+\subsection{Representation Primacy over Kernel Choice}
+The ranking reversal between TF-IDF and RoBERTa on CEAS 2008 ($3.90$ pp net shift) demonstrates that the apparent benefit of a kernel cannot be interpreted independently of upstream feature geometry. On dense continuous embeddings, classical Gaussian RBF directly exploits Euclidean clustering, whereas cyclic phase wrappings disrupt metric structure without compensatory separability. On sparse histogram projections, periodic quantum interactions provide a modest non-linear expansion. Future QML benchmarks must treat representation choice as a primary experimental factor.
+
+\subsection{Practical Equivalence vs Statistical Detectability}
+We emphasize the critical distinction between statistical detectability and practical significance. While 10-seed evaluations detect sub-percentage-point margins ($+0.46$ pp at 8D), these differences fall within the operational noise floor of security filtering ($\varepsilon = 0.01$). Claiming a quantum advantage on the basis of sub-percentage-point margins that disappear at 12D would misrepresent the empirical evidence.
+
+\subsection{Engineering Trade-Offs in Simulation}
+In practical simulation workflows, evaluating quantum kernels at 12D incurs a $64\times$ runtime penalty ($108.8\text{s}$ vs $1.7\text{s}$) to achieve statistical parity with classical RBF ($0.9137$ vs $0.9123$). Incurring steep simulation costs without measurable predictive gains represents an unfavorable engineering trade-off for applied practitioners.
+
+\section{Limitations}
+\label{sec:limits}
+To ensure scientific integrity, we explicitly declare the primary limitations of our benchmark:
+\begin{enumerate}
+    \item \textbf{Classical Statevector Simulation}: Evaluated via exact noiseless double-precision statevectors in PyTorch. Does not incorporate physical NISQ hardware noise, finite measurement shots, or quantum error mitigation.
+    \item \textbf{Feature-Map Scope}: Focuses on the canonical parameter-free 2-layer cyclic $ZZFeatureMap$. Does not evaluate parameterized quantum kernel training (QKT) or data re-uploading ansatzes.
+    \item \textbf{Dataset Scope}: Scoped to binary security text classification (SMS Spam, CEAS 2008, MeAJOR); findings should not be extrapolated to general NLP or non-text telemetry.
+    \item \textbf{Dimensionality Constraints}: Local statevector memory ceilings prevented evaluation beyond 12 qubits on 10,000 samples.
+    \item \textbf{Statistical Scope}: 10 seeds represent computational replicates across fixed corpora rather than independent data distributions.
+    \item \textbf{Security Threat Model}: Evaluates natural distribution drift; does not assess resilience against active adversarial evasion attacks (character/token perturbations).
+    \item \textbf{Simulation Runtime Scope}: Wall-clock measurements reflect local CPU simulation rather than physical quantum device execution.
+\end{enumerate}
+
+\section{Reproducibility}
+\label{sec:repro}
+The authoritative confirmation experiment (Exp 40) was executed on an Apple Silicon ARM64 workstation under macOS Darwin 25.6.0 with Python 3.12.4, PyTorch 2.13.0 (`complex128` statevectors), scikit-learn 1.9.0, NumPy 2.5.2, SciPy 1.18.1, and pandas 2.3.3. All dataset artifacts, deterministic split hashes, and analysis scripts are archived in the project repository. The confirmation suite can be executed via:
+\begin{verbatim}
+python3 experiments/40_confirmation_experiments.py
+\end{verbatim}
+with total execution completing in $\approx 45$ minutes.
+
+\section{Conclusion}
+\label{sec:concl}
+Under controlled matched conditions, the empirical evidence does not support a consistent or practically meaningful advantage for parameter-free quantum fidelity kernels in text security classification. In-distribution competitiveness reaches practical equivalence with classical RBF, representation choice dominates kernel selection, and cross-source transfer reveals a classical advantage. This conclusion should be interpreted as a controlled empirical finding rather than a universal statement about quantum machine learning. Ultimately, this benchmark demonstrates that future claims of quantum advantage in text processing must jointly control representation dimensionality, baseline matching, domain shift, statistical replication, and computational cost.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

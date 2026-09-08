@@ -1,0 +1,7 @@
+Regime,Delta F1,95% Bootstrap CI,CI Excludes Zero,Permutation p (BH Adj),McNemar p (BH Adj),Cohen dz (Seeds),Statistical Verdict
+IID 8D (Anchor 1),+0.0082,"[-0.0135, +0.0295]",No,0.6658,1.0000,+1.82,Compatible with Zero
+Direction A 8D (Anchor 2),-0.0086,"[-0.0409, +0.0238]",No,0.6658,1.0000,-0.99,Compatible with Zero
+Direction B 8D (Anchor 3),-0.0345,"[-0.0616, -0.0078]",Yes (Negative),0.0476*,0.0099**,-3.19,Significant Quantum Disadvantage
+IID 2D,-0.0393,"[-0.0663, -0.0109]",Yes (Negative),0.0476*,0.0001***,-0.81,Significant Quantum Disadvantage
+IID 10D,+0.0079,"[-0.0191, +0.0349]",No,0.6658,1.0000,+1.14,Compatible with Zero
+IID 12D,+0.0032,"[-0.0164, +0.0228]",No,0.7556,1.0000,-0.07,Virtual Tie / Parity
