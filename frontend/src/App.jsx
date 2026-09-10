@@ -2,12 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, ShieldAlert, Cpu, Activity, BarChart2, 
   Database, GitCommit, Layers, Clock, Zap, RefreshCw, 
-  CheckCircle, AlertTriangle
+  CheckCircle, AlertTriangle, MessageSquare, Mail, Sparkles
 } from 'lucide-react';
 import { 
   ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, 
   Tooltip, CartesianGrid, Legend
 } from 'recharts';
+
+import TimingScopeBadge from './components/TimingScopeBadge';
+import ExperimentStatusBadge from './components/ExperimentStatusBadge';
+import TextRepresentationInspector from './components/TextRepresentationInspector';
+import RepresentationLab from './components/RepresentationLab';
 
 const API_BASE = 'http://127.0.0.1:8000';
 
@@ -16,10 +21,16 @@ export default function App() {
   const [healthStatus, setHealthStatus] = useState(null);
 
   // Prediction State
+  const [inputMode, setInputMode] = useState('single'); // 'single' | 'email'
   const [inputText, setInputText] = useState('');
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+  const [selectedRepId, setSelectedRepId] = useState('tfidf');
+  const [selectedDim, setSelectedDim] = useState(8);
   const [predictionResult, setPredictionResult] = useState(null);
   const [isPredicting, setIsPredicting] = useState(false);
   const [presets, setPresets] = useState([]);
+  const [representationsList, setRepresentationsList] = useState([]);
 
   // Research Data State
   const [metricsData, setMetricsData] = useState(null);
@@ -38,15 +49,29 @@ export default function App() {
       .then(data => setHealthStatus(data))
       .catch(err => console.error("Health check error:", err));
 
+    fetch(`${API_BASE}/api/representations`)
+      .then(res => res.json())
+      .then(data => setRepresentationsList(Array.isArray(data) ? data : []))
+      .catch(err => {
+        console.error("Representations error:", err);
+        setRepresentationsList([]);
+      });
+
     fetch(`${API_BASE}/api/samples`)
       .then(res => res.json())
       .then(data => {
-        setPresets(data);
-        if (data.length > 0) {
-          setInputText(data[0].text);
+        const arr = Array.isArray(data) ? data : [];
+        setPresets(arr);
+        if (arr.length > 0) {
+          setInputText(arr[0].text || '');
+          if (arr[0].subject) setEmailSubject(arr[0].subject);
+          if (arr[0].body) setEmailBody(arr[0].body);
         }
       })
-      .catch(err => console.error("Presets error:", err));
+      .catch(err => {
+        console.error("Presets error:", err);
+        setPresets([]);
+      });
 
     fetch(`${API_BASE}/api/research/metrics`)
       .then(res => res.json())
@@ -55,13 +80,19 @@ export default function App() {
 
     fetch(`${API_BASE}/api/dimensionality/scaling`)
       .then(res => res.json())
-      .then(data => setDimData(data))
-      .catch(err => console.error("Dim scaling error:", err));
+      .then(data => setDimData(Array.isArray(data) ? data : []))
+      .catch(err => {
+        console.error("Dim scaling error:", err);
+        setDimData([]);
+      });
 
     fetch(`${API_BASE}/api/runtime/scaling`)
       .then(res => res.json())
-      .then(data => setRuntimeData(data))
-      .catch(err => console.error("Runtime scaling error:", err));
+      .then(data => setRuntimeData(Array.isArray(data) ? data : []))
+      .catch(err => {
+        console.error("Runtime scaling error:", err);
+        setRuntimeData([]);
+      });
 
     fetch(`${API_BASE}/api/geometry/diagnostics`)
       .then(res => res.json())
@@ -70,8 +101,11 @@ export default function App() {
 
     fetch(`${API_BASE}/api/research/tables`)
       .then(res => res.json())
-      .then(data => setTablesList(data))
-      .catch(err => console.error("Tables list error:", err));
+      .then(data => setTablesList(Array.isArray(data) ? data : []))
+      .catch(err => {
+        console.error("Tables list error:", err);
+        setTablesList([]);
+      });
   }, []);
 
   // Fetch table content on select
@@ -91,14 +125,35 @@ export default function App() {
   }, [selectedTableId]);
 
   // Handle live prediction
-  const handlePredict = async (textToPredict = inputText) => {
-    if (!textToPredict.trim()) return;
+  const handlePredict = async (customPayload = null) => {
+    let payload = customPayload;
+    if (!payload) {
+      if (inputMode === 'email') {
+        if (!emailSubject.trim() && !emailBody.trim()) return;
+        payload = {
+          subject: emailSubject,
+          body: emailBody,
+          representation: selectedRepId,
+          dimension: selectedDim,
+          dataset: 'MeAJOR'
+        };
+      } else {
+        if (!inputText.trim()) return;
+        payload = {
+          text: inputText,
+          representation: selectedRepId,
+          dimension: selectedDim,
+          dataset: 'SMS'
+        };
+      }
+    }
+
     setIsPredicting(true);
     try {
       const res = await fetch(`${API_BASE}/api/predict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: textToPredict })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       setPredictionResult(data);
@@ -107,6 +162,37 @@ export default function App() {
     } finally {
       setIsPredicting(false);
     }
+  };
+
+  const handleSelectPreset = (preset) => {
+    if (preset.dataset === 'SMS') {
+      setInputMode('single');
+      setInputText(preset.text);
+      handlePredict({
+        text: preset.text,
+        representation: selectedRepId,
+        dimension: selectedDim,
+        dataset: 'SMS'
+      });
+    } else {
+      setInputMode('email');
+      setEmailSubject(preset.subject || '');
+      setEmailBody(preset.body || preset.text);
+      handlePredict({
+        subject: preset.subject || '',
+        body: preset.body || preset.text,
+        representation: selectedRepId,
+        dimension: selectedDim,
+        dataset: 'MeAJOR'
+      });
+    }
+  };
+
+  const currentRepMeta = representationsList.find(r => r.id === selectedRepId) || {
+    id: 'tfidf',
+    name: 'Canonical TF-IDF + TruncatedSVD',
+    is_canonical: true,
+    is_sparse: true
   };
 
   return (
@@ -124,6 +210,7 @@ export default function App() {
                   Quantum Text Security
                 </h1>
                 <span className="badge badge-blue">Exp 40 Frozen</span>
+                <span className="badge badge-purple">Representation Lab V2.0</span>
               </div>
               <p style={{ fontSize: '0.9rem', color: '#64748b' }}>
                 Multi-Dataset Evaluation of Representation, Geometry, Generalization & Cost
@@ -140,6 +227,12 @@ export default function App() {
               <Zap size={16} /> Live Prediction
             </button>
             <button 
+              className={`nav-tab ${activeTab === 'representation' ? 'active' : ''}`}
+              onClick={() => setActiveTab('representation')}
+            >
+              <RefreshCw size={16} /> Representation Lab
+            </button>
+            <button 
               className={`nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
               onClick={() => setActiveTab('dashboard')}
             >
@@ -152,16 +245,10 @@ export default function App() {
               <Layers size={16} /> Dimensionality (2D–12D)
             </button>
             <button 
-              className={`nav-tab ${activeTab === 'representation' ? 'active' : ''}`}
-              onClick={() => setActiveTab('representation')}
-            >
-              <RefreshCw size={16} /> Representation
-            </button>
-            <button 
               className={`nav-tab ${activeTab === 'generalization' ? 'active' : ''}`}
               onClick={() => setActiveTab('generalization')}
             >
-              <ShieldAlert size={16} /> Domain Shift
+              <ShieldAlert size={16} /> Distribution Shift
             </button>
             <button 
               className={`nav-tab ${activeTab === 'geometry' ? 'active' : ''}`}
@@ -197,13 +284,14 @@ export default function App() {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                     <span className="badge badge-purple">Inference Playground</span>
-                    <span className="badge badge-blue">8 Qubits • 2-Layer Cyclic ZZ</span>
+                    <span className="badge badge-blue">{selectedDim} Qubits • 2-Layer Cyclic ZZ</span>
+                    <ExperimentStatusBadge status={currentRepMeta.is_canonical ? 'CANONICAL' : 'EXPLORATORY'} />
                   </div>
                   <h2 style={{ fontSize: '1.55rem', color: '#0f172a', marginBottom: '6px' }}>
                     Live Quantum vs Classical Security Text Classifier
                   </h2>
                   <p style={{ color: '#475569', fontSize: '1.02rem', maxWidth: '900px', lineHeight: '1.6' }}>
-                    Select or enter an email/SMS message below to execute live comparative classification through matched 8-dimensional representations across the <strong>Quantum Fidelity Kernel SVM</strong>, <strong>Classical Gaussian RBF SVM</strong>, and <strong>Contextual Linear SVM</strong>.
+                    Select or enter a security message below to execute live comparative classification through matched {selectedDim}-dimensional representations across the <strong>Quantum Fidelity Kernel SVM</strong>, <strong>Classical Gaussian RBF SVM</strong>, and <strong>Linear SVM baseline</strong>.
                   </p>
                 </div>
                 <div style={{ textAlign: 'right', background: '#f8fafc', padding: '10px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
@@ -218,18 +306,15 @@ export default function App() {
                 {presets.map((preset) => (
                   <button
                     key={preset.id}
-                    onClick={() => {
-                      setInputText(preset.text);
-                      handlePredict(preset.text);
-                    }}
+                    onClick={() => handleSelectPreset(preset)}
                     style={{
-                      background: inputText === preset.text ? '#eff6ff' : '#ffffff',
-                      border: `1px solid ${inputText === preset.text ? '#2563eb' : '#cbd5e1'}`,
+                      background: (inputMode === 'email' ? emailSubject === preset.subject : inputText === preset.text) ? '#eff6ff' : '#ffffff',
+                      border: `1px solid ${(inputMode === 'email' ? emailSubject === preset.subject : inputText === preset.text) ? '#2563eb' : '#cbd5e1'}`,
                       borderRadius: '8px',
                       padding: '7px 14px',
-                      color: inputText === preset.text ? '#1d4ed8' : '#334155',
+                      color: (inputMode === 'email' ? emailSubject === preset.subject : inputText === preset.text) ? '#1d4ed8' : '#334155',
                       fontSize: '0.9rem',
-                      fontWeight: inputText === preset.text ? 600 : 400,
+                      fontWeight: (inputMode === 'email' ? emailSubject === preset.subject : inputText === preset.text) ? 600 : 400,
                       cursor: 'pointer',
                       transition: 'all 0.15s ease'
                     }}
@@ -241,26 +326,162 @@ export default function App() {
               </div>
             </div>
 
-            {/* Input and Action Section */}
+            {/* Input Configuration & Editor Section */}
             <div className="clean-card" style={{ padding: '24px' }}>
-              <label style={{ display: 'block', fontSize: '1.05rem', fontWeight: 600, marginBottom: '8px', color: '#0f172a' }}>
-                Message Text (Email Subject + Body or SMS):
-              </label>
-              <textarea
-                className="textarea-custom"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder="Enter text to classify (e.g., security alerts, prize notifications, or corporate emails)..."
-                rows={4}
-              />
-              <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              
+              {/* Controls: Representation Selector + Dimension Selector + Input Mode Toggle */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '18px', paddingBottom: '16px', borderBottom: '1px solid #f1f5f9' }}>
+                
+                {/* Input Format Toggle */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>Input Format:</span>
+                  <div style={{ display: 'flex', background: '#f1f5f9', padding: '3px', borderRadius: '8px' }}>
+                    <button
+                      onClick={() => setInputMode('single')}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: inputMode === 'single' ? '#ffffff' : 'transparent',
+                        color: inputMode === 'single' ? '#0f172a' : '#64748b',
+                        fontWeight: inputMode === 'single' ? 700 : 500,
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        boxShadow: inputMode === 'single' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                      }}
+                    >
+                      <MessageSquare size={14} /> SMS / Single Text
+                    </button>
+                    <button
+                      onClick={() => setInputMode('email')}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: inputMode === 'email' ? '#ffffff' : 'transparent',
+                        color: inputMode === 'email' ? '#0f172a' : '#64748b',
+                        fontWeight: inputMode === 'email' ? 700 : 500,
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        boxShadow: inputMode === 'email' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                      }}
+                    >
+                      <Mail size={14} /> Email (Subject + Body)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Modular Representation Selector */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>Representation:</span>
+                  <select
+                    value={selectedRepId}
+                    onChange={(e) => setSelectedRepId(e.target.value)}
+                    style={{
+                      padding: '7px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      background: '#ffffff',
+                      fontSize: '0.88rem',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {representationsList.map(rep => (
+                      <option key={rep.id} value={rep.id}>
+                        {rep.name} {rep.is_canonical ? '(Canonical)' : '(Exploratory)'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Dimension / Qubit Selector */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>Dimension:</span>
+                  <select
+                    value={selectedDim}
+                    onChange={(e) => setSelectedDim(Number(e.target.value))}
+                    style={{
+                      padding: '7px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      background: '#ffffff',
+                      fontSize: '0.88rem',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {[2, 4, 6, 8, 10, 12].map(d => (
+                      <option key={d} value={d}>{d}D ({d} Qubits)</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Text Input Fields */}
+              {inputMode === 'email' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.92rem', fontWeight: 600, marginBottom: '6px', color: '#0f172a' }}>
+                      Email Subject:
+                    </label>
+                    <input
+                      type="text"
+                      className="textarea-custom"
+                      style={{ minHeight: '42px', padding: '10px 14px' }}
+                      value={emailSubject}
+                      onChange={(e) => setEmailSubject(e.target.value)}
+                      placeholder="e.g., URGENT: Security notification regarding your payroll account"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.92rem', fontWeight: 600, marginBottom: '6px', color: '#0f172a' }}>
+                      Email Body:
+                    </label>
+                    <textarea
+                      className="textarea-custom"
+                      value={emailBody}
+                      onChange={(e) => setEmailBody(e.target.value)}
+                      placeholder="Enter email message body text..."
+                      rows={4}
+                    />
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic' }}>
+                    * Combined according to paper preprocessing protocol: <code>Subject: {'<subject>'}\n\n{'<body>'}</code>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label style={{ display: 'block', fontSize: '1.05rem', fontWeight: 600, marginBottom: '8px', color: '#0f172a' }}>
+                    Message Text (SMS or Raw Text):
+                  </label>
+                  <textarea
+                    className="textarea-custom"
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    placeholder="Enter message text to classify (e.g., SMS alerts, phishing links, or normal messages)..."
+                    rows={4}
+                  />
+                </div>
+              )}
+
+              {/* Action Button & Metadata */}
+              <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                 <div style={{ fontSize: '0.92rem', color: '#64748b' }}>
-                  Characters: <strong>{inputText.length}</strong> • Words: <strong>{inputText.split(/\s+/).filter(Boolean).length}</strong>
+                  Encoder: <strong>{currentRepMeta.name}</strong> • Target: <strong>{selectedDim} Qubits</strong>
                 </div>
                 <button
                   className="btn-primary"
                   onClick={() => handlePredict()}
-                  disabled={isPredicting || !inputText.trim()}
+                  disabled={isPredicting || (inputMode === 'email' ? (!emailSubject.trim() && !emailBody.trim()) : !inputText.trim())}
                   style={{ opacity: isPredicting ? 0.7 : 1 }}
                 >
                   {isPredicting ? (
@@ -276,224 +497,217 @@ export default function App() {
               </div>
             </div>
 
-            {/* Live Prediction Cards */}
+            {/* Live Prediction Output Cards */}
             {predictionResult && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
-                {/* 1. Quantum Fidelity Kernel Card */}
-                <div className="clean-panel-interactive" style={{ padding: '22px', borderLeft: '5px solid #2563eb' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Cpu color="#2563eb" size={22} />
-                      <h3 style={{ fontSize: '1.15rem', color: '#0f172a' }}>Quantum Fidelity Kernel</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>
+                    Comparative Inference Results
+                  </h3>
+                  <TimingScopeBadge scope="live" />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
+                  
+                  {/* 1. Quantum Fidelity Kernel Card */}
+                  <div className="clean-panel-interactive" style={{ padding: '22px', borderLeft: '5px solid #2563eb' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Cpu color="#2563eb" size={22} />
+                        <h3 style={{ fontSize: '1.15rem', color: '#0f172a' }}>Quantum Fidelity Kernel</h3>
+                      </div>
+                      <span className="badge badge-blue">{predictionResult.dimension} Qubits</span>
                     </div>
-                    <span className="badge badge-blue">8 Qubits</span>
+
+                    <div style={{ marginBottom: '16px' }}>
+                      <div style={{ fontSize: '0.82rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.04em' }}>Prediction</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {predictionResult.models.quantum_fidelity_kernel.is_malicious ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#dc2626', fontWeight: 700, fontSize: '1.25rem' }}>
+                            <ShieldAlert size={22} /> MALICIOUS / PHISHING
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#059669', fontWeight: 700, fontSize: '1.25rem' }}>
+                            <ShieldCheck size={22} /> LEGITIMATE / HAM
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Decision Score & Probability */}
+                    <div style={{ marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '5px' }}>
+                        <span style={{ color: '#475569' }}>Estimated Probability:</span>
+                        <span style={{ fontWeight: 700, color: '#0f172a' }}>
+                          {(predictionResult.models.quantum_fidelity_kernel.estimated_probability * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                      <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div 
+                          style={{ 
+                            width: `${predictionResult.models.quantum_fidelity_kernel.estimated_probability * 100}%`, 
+                            height: '100%', 
+                            background: predictionResult.models.quantum_fidelity_kernel.is_malicious ? '#dc2626' : '#059669',
+                            transition: 'width 0.4s ease'
+                          }} 
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.9rem', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
+                      <div>
+                        <span style={{ color: '#64748b' }}>Decision Margin: </span>
+                        <strong style={{ color: '#0f172a' }}>{predictionResult.models.quantum_fidelity_kernel.decision_score}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: '#64748b' }}>Live Latency: </span>
+                        <strong style={{ color: '#2563eb' }}>{predictionResult.models.quantum_fidelity_kernel.latency_ms} ms</strong>
+                      </div>
+                    </div>
                   </div>
 
-                  <div style={{ marginBottom: '16px' }}>
-                    <div style={{ fontSize: '0.82rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.04em' }}>Prediction</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {predictionResult.models.quantum_fidelity_kernel.is_malicious ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#dc2626', fontWeight: 700, fontSize: '1.25rem' }}>
-                          <ShieldAlert size={22} /> MALICIOUS / PHISHING
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#059669', fontWeight: 700, fontSize: '1.25rem' }}>
-                          <ShieldCheck size={22} /> LEGITIMATE / HAM
-                        </div>
-                      )}
+                  {/* 2. Classical Gaussian RBF Card */}
+                  <div className="clean-panel-interactive" style={{ padding: '22px', borderLeft: '5px solid #7c3aed' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Activity color="#7c3aed" size={22} />
+                        <h3 style={{ fontSize: '1.15rem', color: '#0f172a' }}>Classical Gaussian RBF</h3>
+                      </div>
+                      <span className="badge badge-purple">Matched {predictionResult.dimension}D</span>
+                    </div>
+
+                    <div style={{ marginBottom: '16px' }}>
+                      <div style={{ fontSize: '0.82rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.04em' }}>Prediction</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {predictionResult.models.classical_rbf.is_malicious ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#dc2626', fontWeight: 700, fontSize: '1.25rem' }}>
+                            <ShieldAlert size={22} /> MALICIOUS / PHISHING
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#059669', fontWeight: 700, fontSize: '1.25rem' }}>
+                            <ShieldCheck size={22} /> LEGITIMATE / HAM
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Decision Score & Probability */}
+                    <div style={{ marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '5px' }}>
+                        <span style={{ color: '#475569' }}>Estimated Probability:</span>
+                        <span style={{ fontWeight: 700, color: '#0f172a' }}>
+                          {(predictionResult.models.classical_rbf.estimated_probability * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                      <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div 
+                          style={{ 
+                            width: `${predictionResult.models.classical_rbf.estimated_probability * 100}%`, 
+                            height: '100%', 
+                            background: predictionResult.models.classical_rbf.is_malicious ? '#dc2626' : '#059669',
+                            transition: 'width 0.4s ease'
+                          }} 
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.9rem', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
+                      <div>
+                        <span style={{ color: '#64748b' }}>Decision Margin: </span>
+                        <strong style={{ color: '#0f172a' }}>{predictionResult.models.classical_rbf.decision_score}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: '#64748b' }}>Live Latency: </span>
+                        <strong style={{ color: '#7c3aed' }}>{predictionResult.models.classical_rbf.latency_ms} ms</strong>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Probability Bar */}
-                  <div style={{ marginBottom: '14px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '5px' }}>
-                      <span style={{ color: '#475569' }}>Malicious Probability:</span>
-                      <span style={{ fontWeight: 700, color: '#0f172a' }}>
-                        {(predictionResult.models.quantum_fidelity_kernel.probability * 100).toFixed(1)}%
-                      </span>
+                  {/* 3. Linear SVM Baseline Card */}
+                  <div className="clean-panel-interactive" style={{ padding: '22px', borderLeft: '5px solid #64748b' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <BarChart2 color="#64748b" size={22} />
+                        <h3 style={{ fontSize: '1.15rem', color: '#0f172a' }}>Linear SVM Baseline</h3>
+                      </div>
+                      <span className="badge badge-gray">{predictionResult.dimension}D Subspace</span>
                     </div>
-                    <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div 
-                        style={{ 
-                          width: `${predictionResult.models.quantum_fidelity_kernel.probability * 100}%`, 
-                          height: '100%', 
-                          background: predictionResult.models.quantum_fidelity_kernel.is_malicious ? '#dc2626' : '#059669',
-                          transition: 'width 0.4s ease'
-                        }} 
-                      />
-                    </div>
-                  </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.9rem', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
-                    <div>
-                      <span style={{ color: '#64748b' }}>Decision Score: </span>
-                      <strong style={{ color: '#0f172a' }}>{predictionResult.models.quantum_fidelity_kernel.decision_score}</strong>
+                    <div style={{ marginBottom: '16px' }}>
+                      <div style={{ fontSize: '0.82rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.04em' }}>Prediction</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {predictionResult.models.linear_svm.is_malicious ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#dc2626', fontWeight: 700, fontSize: '1.25rem' }}>
+                            <ShieldAlert size={22} /> MALICIOUS / PHISHING
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#059669', fontWeight: 700, fontSize: '1.25rem' }}>
+                            <ShieldCheck size={22} /> LEGITIMATE / HAM
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <span style={{ color: '#64748b' }}>Latency: </span>
-                      <strong style={{ color: '#2563eb' }}>{predictionResult.models.quantum_fidelity_kernel.latency_ms} ms</strong>
+
+                    {/* Decision Score & Probability */}
+                    <div style={{ marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '5px' }}>
+                        <span style={{ color: '#475569' }}>Estimated Probability:</span>
+                        <span style={{ fontWeight: 700, color: '#0f172a' }}>
+                          {(predictionResult.models.linear_svm.estimated_probability * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                      <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div 
+                          style={{ 
+                            width: `${predictionResult.models.linear_svm.estimated_probability * 100}%`, 
+                            height: '100%', 
+                            background: predictionResult.models.linear_svm.is_malicious ? '#dc2626' : '#059669',
+                            transition: 'width 0.4s ease'
+                          }} 
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.9rem', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
+                      <div>
+                        <span style={{ color: '#64748b' }}>Decision Margin: </span>
+                        <strong style={{ color: '#0f172a' }}>{predictionResult.models.linear_svm.decision_score}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: '#64748b' }}>Live Latency: </span>
+                        <strong style={{ color: '#475569' }}>{predictionResult.models.linear_svm.latency_ms} ms</strong>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* 2. Classical Gaussian RBF Card */}
-                <div className="clean-panel-interactive" style={{ padding: '22px', borderLeft: '5px solid #7c3aed' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Activity color="#7c3aed" size={22} />
-                      <h3 style={{ fontSize: '1.15rem', color: '#0f172a' }}>Classical Gaussian RBF</h3>
-                    </div>
-                    <span className="badge badge-purple">Matched 8D</span>
-                  </div>
-
-                  <div style={{ marginBottom: '16px' }}>
-                    <div style={{ fontSize: '0.82rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.04em' }}>Prediction</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {predictionResult.models.classical_rbf.is_malicious ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#dc2626', fontWeight: 700, fontSize: '1.25rem' }}>
-                          <ShieldAlert size={22} /> MALICIOUS / PHISHING
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#059669', fontWeight: 700, fontSize: '1.25rem' }}>
-                          <ShieldCheck size={22} /> LEGITIMATE / HAM
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Probability Bar */}
-                  <div style={{ marginBottom: '14px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '5px' }}>
-                      <span style={{ color: '#475569' }}>Malicious Probability:</span>
-                      <span style={{ fontWeight: 700, color: '#0f172a' }}>
-                        {(predictionResult.models.classical_rbf.probability * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                    <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div 
-                        style={{ 
-                          width: `${predictionResult.models.classical_rbf.probability * 100}%`, 
-                          height: '100%', 
-                          background: predictionResult.models.classical_rbf.is_malicious ? '#dc2626' : '#059669',
-                          transition: 'width 0.4s ease'
-                        }} 
-                      />
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.9rem', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
-                    <div>
-                      <span style={{ color: '#64748b' }}>Decision Score: </span>
-                      <strong style={{ color: '#0f172a' }}>{predictionResult.models.classical_rbf.decision_score}</strong>
-                    </div>
-                    <div>
-                      <span style={{ color: '#64748b' }}>Latency: </span>
-                      <strong style={{ color: '#7c3aed' }}>{predictionResult.models.classical_rbf.latency_ms} ms</strong>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Contextual Linear SVM Card */}
-                <div className="clean-panel-interactive" style={{ padding: '22px', borderLeft: '5px solid #64748b' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <BarChart2 color="#64748b" size={22} />
-                      <h3 style={{ fontSize: '1.15rem', color: '#0f172a' }}>Contextual Linear SVM</h3>
-                    </div>
-                    <span className="badge badge-gray">8D SVD</span>
-                  </div>
-
-                  <div style={{ marginBottom: '16px' }}>
-                    <div style={{ fontSize: '0.82rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.04em' }}>Prediction</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {predictionResult.models.linear_svm.is_malicious ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#dc2626', fontWeight: 700, fontSize: '1.25rem' }}>
-                          <ShieldAlert size={22} /> MALICIOUS / PHISHING
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#059669', fontWeight: 700, fontSize: '1.25rem' }}>
-                          <ShieldCheck size={22} /> LEGITIMATE / HAM
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Probability Bar */}
-                  <div style={{ marginBottom: '14px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '5px' }}>
-                      <span style={{ color: '#475569' }}>Malicious Probability:</span>
-                      <span style={{ fontWeight: 700, color: '#0f172a' }}>
-                        {(predictionResult.models.linear_svm.probability * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                    <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div 
-                        style={{ 
-                          width: `${predictionResult.models.linear_svm.probability * 100}%`, 
-                          height: '100%', 
-                          background: predictionResult.models.linear_svm.is_malicious ? '#dc2626' : '#059669',
-                          transition: 'width 0.4s ease'
-                        }} 
-                      />
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.9rem', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
-                    <div>
-                      <span style={{ color: '#64748b' }}>Decision Score: </span>
-                      <strong style={{ color: '#0f172a' }}>{predictionResult.models.linear_svm.decision_score}</strong>
-                    </div>
-                    <div>
-                      <span style={{ color: '#64748b' }}>Latency: </span>
-                      <strong style={{ color: '#475569' }}>{predictionResult.models.linear_svm.latency_ms} ms</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Quantum Statevector Amplitudes Visualization */}
-            {predictionResult && (
-              <div className="clean-card" style={{ padding: '24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-                  <div>
-                    <h3 style={{ fontSize: '1.2rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Zap color="#2563eb" size={20} /> Quantum Statevector Amplitude Distribution
-                    </h3>
-                    <p style={{ fontSize: '0.92rem', color: '#64748b', marginTop: '3px' }}>
-                      Exact double-precision statevector |ψ(x)⟩ across 256 complex basis states (8 qubits).
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <span className="badge badge-blue">Entropy: {predictionResult.quantum_diagnostics.state_entropy_bits} bits</span>
-                    <span className="badge badge-purple">Hilbert Dim: {predictionResult.quantum_diagnostics.hilbert_dimension}</span>
-                  </div>
-                </div>
-
-                <div style={{ height: '240px', width: '100%' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={predictionResult.quantum_diagnostics.top_basis_probabilities} margin={{ top: 10, right: 20, left: 10, bottom: 25 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="basis" stroke="#475569" fontSize={13} fontWeight={600} fontFamily="var(--font-mono)" />
-                      <YAxis stroke="#475569" fontSize={12} tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} />
-                      <Tooltip 
-                        contentStyle={{ background: '#ffffff', borderColor: '#cbd5e1', borderRadius: '8px', color: '#0f172a', fontSize: '0.95rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
-                        formatter={(val) => [`${(val * 100).toFixed(2)}%`, 'Basis Measurement Probability']}
-                      />
-                      <Bar dataKey="probability" fill="#2563eb" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                {/* Text-Level Representation Pipeline Inspector */}
+                <TextRepresentationInspector 
+                  traceData={predictionResult.feature_trace} 
+                  representationMeta={predictionResult.representation}
+                  dimension={predictionResult.dimension}
+                />
               </div>
             )}
           </div>
         )}
 
-        {/* VIEW 2: RESEARCH DASHBOARD / EXECUTIVE FINDINGS */}
+        {/* VIEW 2: MODULAR REPRESENTATION LAB */}
+        {activeTab === 'representation' && (
+          <RepresentationLab 
+            currentRepId={selectedRepId} 
+            onSelectRepresentation={(id) => setSelectedRepId(id)} 
+          />
+        )}
+
+        {/* VIEW 3: RESEARCH DASHBOARD / EXECUTIVE FINDINGS */}
         {activeTab === 'dashboard' && metricsData && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
             <div className="clean-card" style={{ padding: '24px' }}>
-              <span className="badge badge-blue" style={{ marginBottom: '10px' }}>Paper Findings Synthesis</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '10px' }}>
+                <span className="badge badge-blue">Paper Findings Synthesis</span>
+                <TimingScopeBadge scope="benchmark" />
+              </div>
               <h2 style={{ fontSize: '1.6rem', color: '#0f172a', marginBottom: '8px' }}>
                 Principal Finding: Parity under IID, Degradation under Source Shift
               </h2>
@@ -619,22 +833,25 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW 3: DIMENSIONALITY SCALING EXPLORER */}
+        {/* VIEW 4: DIMENSIONALITY SCALING EXPLORER */}
         {activeTab === 'dimensionality' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
             <div className="clean-card" style={{ padding: '24px' }}>
-              <span className="badge badge-purple" style={{ marginBottom: '10px' }}>Bottleneck Resolution</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '10px' }}>
+                <span className="badge badge-purple">Bottleneck Resolution</span>
+                <TimingScopeBadge scope="benchmark" />
+              </div>
               <h2 style={{ fontSize: '1.6rem', color: '#0f172a', marginBottom: '8px' }}>
                 Dimensionality Scaling Trajectory (2D to 12D)
               </h2>
               <p style={{ color: '#475569', fontSize: '1.02rem', lineHeight: '1.6' }}>
-                Scaling representation dimension from 2D to 12D produces a monotonic +41.7% relative gain (0.6447 → 0.9137 F1), converging to parity with classical RBF at 12D. This indicates that early low-dimensional weakness was an information bottleneck caused by TruncatedSVD compression rather than a failure of quantum geometry.
+                Scaling representation dimension from 2D to 12D produces a monotonic +41.7% relative gain (0.6447 → 0.9137 F1), converging to parity with classical RBF at 12D. This indicates that early low-dimensional weakness was strongly associated with information bottleneck caused by TruncatedSVD compression rather than a failure of quantum geometry.
               </p>
             </div>
 
             <div className="clean-card" style={{ padding: '24px' }}>
               <h3 style={{ fontSize: '1.25rem', color: '#0f172a', marginBottom: '16px' }}>
-                Test F1 Score vs Reduced Representation Dimension
+                Test F1 Score vs Reduced Representation Dimension (MeAJOR Benchmark)
               </h3>
               <div style={{ height: '360px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -649,62 +866,9 @@ export default function App() {
                     <Legend wrapperStyle={{ fontSize: '0.95rem', paddingTop: '10px' }} />
                     <Line type="monotone" dataKey="quantum_f1" name="Quantum Fidelity Kernel" stroke="#2563eb" strokeWidth={3} dot={{ r: 6 }} />
                     <Line type="monotone" dataKey="rbf_f1" name="Matched Classical RBF" stroke="#7c3aed" strokeWidth={3} dot={{ r: 6 }} />
-                    <Line type="monotone" dataKey="linear_f1" name="Contextual Linear SVM" stroke="#64748b" strokeWidth={2.2} strokeDasharray="4 4" dot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="linear_f1" name="Linear SVM baseline" stroke="#64748b" strokeWidth={2.2} strokeDasharray="4 4" dot={{ r: 5 }} />
                   </LineChart>
                 </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* VIEW 4: REPRESENTATION ABLATION */}
-        {activeTab === 'representation' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
-            <div className="clean-card" style={{ padding: '24px' }}>
-              <span className="badge badge-amber" style={{ marginBottom: '10px' }}>Representation Dominance</span>
-              <h2 style={{ fontSize: '1.6rem', color: '#0f172a', marginBottom: '8px' }}>
-                Representation Ranking Inversion on CEAS 2008
-              </h2>
-              <p style={{ color: '#475569', fontSize: '1.02rem', lineHeight: '1.6' }}>
-                Switching upstream representation from 8D TF-IDF to 8D RoBERTa inverts the relative performance ranking between quantum and classical kernels by a net margin of <strong>3.90 percentage points</strong> (+0.95 pp on TF-IDF vs -2.95 pp on RoBERTa). Representation choice dominates kernel choice by an order of magnitude.
-              </p>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
-              <div className="clean-panel-interactive" style={{ padding: '24px' }}>
-                <h3 style={{ fontSize: '1.2rem', color: '#2563eb', marginBottom: '14px' }}>8D TF-IDF + TruncatedSVD</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem' }}>
-                    <span style={{ color: '#475569' }}>Quantum Kernel:</span>
-                    <strong style={{ color: '#0f172a' }}>0.9736 F1</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem' }}>
-                    <span style={{ color: '#475569' }}>Classical RBF:</span>
-                    <strong style={{ color: '#0f172a' }}>0.9641 F1</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '10px', fontSize: '1rem' }}>
-                    <span style={{ color: '#059669', fontWeight: 600 }}>Quantum Advantage:</span>
-                    <strong style={{ color: '#059669' }}>+0.95 pp (Δ = +0.0095)</strong>
-                  </div>
-                </div>
-              </div>
-
-              <div className="clean-panel-interactive" style={{ padding: '24px' }}>
-                <h3 style={{ fontSize: '1.2rem', color: '#7c3aed', marginBottom: '14px' }}>8D Dense RoBERTa Embeddings</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem' }}>
-                    <span style={{ color: '#475569' }}>Quantum Kernel:</span>
-                    <strong style={{ color: '#0f172a' }}>0.9601 F1</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem' }}>
-                    <span style={{ color: '#475569' }}>Classical RBF:</span>
-                    <strong style={{ color: '#0f172a' }}>0.9896 F1</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '10px', fontSize: '1rem' }}>
-                    <span style={{ color: '#dc2626', fontWeight: 600 }}>Classical Advantage:</span>
-                    <strong style={{ color: '#dc2626' }}>-2.95 pp (Δ = -0.0295)</strong>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -714,7 +878,10 @@ export default function App() {
         {activeTab === 'generalization' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
             <div className="clean-card" style={{ padding: '24px' }}>
-              <span className="badge badge-rose" style={{ marginBottom: '10px' }}>Domain Shift Evaluation</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '10px' }}>
+                <span className="badge badge-rose">Domain Shift Evaluation</span>
+                <TimingScopeBadge scope="benchmark" />
+              </div>
               <h2 style={{ fontSize: '1.6rem', color: '#0f172a', marginBottom: '8px' }}>
                 Cross-Source Domain Holdout (Direction B)
               </h2>
@@ -746,7 +913,7 @@ export default function App() {
                 <div className="clean-panel-interactive" style={{ padding: '18px', textAlign: 'center' }}>
                   <div style={{ fontSize: '0.88rem', color: '#64748b' }}>Full 50k TF-IDF</div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#2563eb', margin: '4px 0' }}>0.8837 F1</div>
-                  <div style={{ fontSize: '0.82rem', color: '#64748b' }}>Full Vocabulary Ceiling</div>
+                  <div style={{ fontSize: '0.82rem', color: '#64748b' }}>Full-dimensional TF-IDF baseline</div>
                 </div>
               </div>
             </div>
@@ -757,12 +924,15 @@ export default function App() {
         {activeTab === 'geometry' && geomData && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
             <div className="clean-card" style={{ padding: '24px' }}>
-              <span className="badge badge-purple" style={{ marginBottom: '10px' }}>Geometric Profiling</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '10px' }}>
+                <span className="badge badge-purple">Geometric Profiling</span>
+                <TimingScopeBadge scope="benchmark" />
+              </div>
               <h2 style={{ fontSize: '1.6rem', color: '#0f172a', marginBottom: '8px' }}>
                 Decoupling Single-State Entropy and Pairwise Kernel Diversity
               </h2>
               <p style={{ color: '#475569', fontSize: '1.02rem', lineHeight: '1.6' }}>
-                Regressions demonstrate a strong inverse correlation (r = -0.78 to -0.83) between single-state von Neumann entropy and pairwise kernel diversity. Spreading statevectors across basis states causes pairwise fidelities to concentrate, refuting the heuristic that greater single-state dispersion yields better classification.
+                Regressions demonstrate a strong inverse correlation (r = -0.78 to -0.83) between single-state von Neumann entropy and pairwise kernel diversity. Spreading statevectors across basis states is strongly inversely associated with pairwise kernel diversity, refuting the heuristic that greater single-state dispersion yields better classification.
               </p>
             </div>
 
@@ -809,7 +979,10 @@ export default function App() {
         {activeTab === 'runtime' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
             <div className="clean-card" style={{ padding: '24px' }}>
-              <span className="badge badge-amber" style={{ marginBottom: '10px' }}>Simulation Profiling</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '10px' }}>
+                <span className="badge badge-amber">Simulation Profiling</span>
+                <TimingScopeBadge scope="benchmark" />
+              </div>
               <h2 style={{ fontSize: '1.6rem', color: '#0f172a', marginBottom: '8px' }}>
                 Computational Execution Time and Memory Scaling
               </h2>
@@ -820,7 +993,7 @@ export default function App() {
 
             <div className="clean-card" style={{ padding: '24px' }}>
               <h3 style={{ fontSize: '1.25rem', color: '#0f172a', marginBottom: '16px' }}>
-                Kernel Matrix Computation Time (Seconds) vs Qubits / Dimensions
+                Kernel Matrix Computation Time (Seconds) vs Qubits / Dimensions (10,000 Samples)
               </h3>
               <div style={{ height: '360px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -848,68 +1021,77 @@ export default function App() {
             <div className="clean-card" style={{ padding: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                  <span className="badge badge-blue" style={{ marginBottom: '8px' }}>Audited Research Data</span>
-                  <h2 style={{ fontSize: '1.6rem', color: '#0f172a' }}>Publication Evidence Tables</h2>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <span className="badge badge-blue">Paper Artifacts</span>
+                    <ExperimentStatusBadge status="CANONICAL" />
+                  </div>
+                  <h2 style={{ fontSize: '1.55rem', color: '#0f172a' }}>Authoritative Research Tables</h2>
+                  <p style={{ color: '#64748b', fontSize: '0.98rem' }}>
+                    Verified numerical evidence from Experiments 30 to 40.
+                  </p>
                 </div>
-                {/* Table Selector */}
-                <select
-                  value={selectedTableId}
-                  onChange={(e) => setSelectedTableId(e.target.value)}
-                  style={{
-                    background: '#ffffff',
-                    color: '#0f172a',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '8px',
-                    padding: '9px 16px',
-                    fontSize: '0.98rem',
-                    fontWeight: 600,
-                    outline: 'none',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {tablesList.map(t => (
-                    <option key={t.id} value={t.id}>{t.title}</option>
+                
+                {/* Table selector buttons */}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {tablesList.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setSelectedTableId(t.id)}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: '8px',
+                        border: `1px solid ${selectedTableId === t.id ? '#2563eb' : '#cbd5e1'}`,
+                        background: selectedTableId === t.id ? '#eff6ff' : '#ffffff',
+                        color: selectedTableId === t.id ? '#1d4ed8' : '#475569',
+                        fontWeight: selectedTableId === t.id ? 700 : 500,
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {t.id.replace('_', ' ').toUpperCase()}
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
             </div>
 
-            {tableContent && !isLoadingTable && (
-              <div className="clean-card" style={{ padding: '24px', overflowX: 'auto' }}>
-                <h3 style={{ fontSize: '1.25rem', color: '#0f172a', marginBottom: '16px' }}>
-                  {tablesList.find(t => t.id === selectedTableId)?.title}
-                </h3>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#475569', background: '#f8fafc' }}>
-                      {tableContent.columns.map((col, idx) => (
-                        <th key={idx} style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>{col}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tableContent.rows.map((row, rIdx) => (
-                      <tr key={rIdx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        {tableContent.columns.map((col, cIdx) => (
-                          <td key={cIdx} style={{ padding: '12px 14px', color: cIdx === 0 ? '#0f172a' : '#475569' }}>
-                            {row[col]}
-                          </td>
+            {tableContent && (
+              <div className="clean-card" style={{ padding: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                  <h3 style={{ fontSize: '1.3rem', color: '#0f172a' }}>{tableContent.title}</h3>
+                  <TimingScopeBadge scope="benchmark" />
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="table-clean" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95rem' }}>
+                    <thead>
+                      <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
+                        {tableContent.columns.map((col, idx) => (
+                          <th key={idx} style={{ padding: '12px 14px', fontWeight: 600, color: '#334155' }}>
+                            {col}
+                          </th>
                         ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {tableContent.rows.map((row, rIdx) => (
+                        <tr key={rIdx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          {tableContent.columns.map((col, cIdx) => (
+                            <td key={cIdx} style={{ padding: '12px 14px', color: '#1e293b' }}>
+                              {typeof row[col] === 'number' ? row[col].toFixed(4) : (row[col] ?? '—')}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
         )}
 
       </main>
-
-      {/* Footer */}
-      <footer style={{ borderTop: '1px solid #e2e8f0', background: '#ffffff', padding: '20px 28px', textAlign: 'center', fontSize: '0.9rem', color: '#64748b' }}>
-        <p>Quantum Text Security Research Platform • Multi-Dataset Empirical Benchmark • Apple Silicon ARM64 / PyTorch complex128</p>
-      </footer>
     </div>
   );
 }
