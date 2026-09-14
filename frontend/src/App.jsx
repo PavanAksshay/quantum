@@ -88,7 +88,10 @@ export default function App() {
 
     fetch(`${API_BASE}/api/runtime/scaling`)
       .then(res => res.json())
-      .then(data => setRuntimeData(Array.isArray(data) ? data : []))
+      .then(data => {
+        const list = Array.isArray(data) ? data : (data?.data || []);
+        setRuntimeData(list);
+      })
       .catch(err => {
         console.error("Runtime scaling error:", err);
         setRuntimeData([]);
@@ -992,15 +995,17 @@ export default function App() {
             </div>
 
             <div className="clean-card" style={{ padding: '24px' }}>
-              <h3 style={{ fontSize: '1.25rem', color: '#0f172a', marginBottom: '16px' }}>
-                Kernel Matrix Computation Time (Seconds) vs Qubits / Dimensions (10,000 Samples)
-              </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                <h3 style={{ fontSize: '1.25rem', color: '#0f172a', margin: 0 }}>
+                  Kernel Matrix Computation Time (Seconds) vs Dimensions (10,000 Samples)
+                </h3>
+              </div>
               <div style={{ height: '360px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={runtimeData.filter(d => d.quantum_s !== null)} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="dim" stroke="#475569" fontSize={13} fontWeight={500} />
-                    <YAxis stroke="#475569" scale="log" domain={['auto', 'auto']} fontSize={13} tickFormatter={(v) => `${v}s`} />
+                    <YAxis stroke="#475569" domain={[0, 'auto']} fontSize={13} tickFormatter={(v) => `${v}s`} />
                     <Tooltip 
                       contentStyle={{ background: '#ffffff', borderColor: '#cbd5e1', borderRadius: '8px', color: '#0f172a', fontSize: '0.95rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
                       formatter={(val, name) => [`${val}s`, name]}
@@ -1010,6 +1015,45 @@ export default function App() {
                     <Bar dataKey="rbf_s" name="Matched Classical RBF" fill="#7c3aed" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Profile Comparison Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+              <div className="clean-card" style={{ padding: '20px' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  Execution Ratio (12D)
+                </div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#d97706', marginBottom: '6px' }}>
+                  64.0× Slower
+                </div>
+                <div style={{ fontSize: '0.92rem', color: '#475569' }}>
+                  Quantum requires 108.8s vs 1.7s for Classical RBF at 12 qubits/dimensions.
+                </div>
+              </div>
+
+              <div className="clean-card" style={{ padding: '20px' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  Peak Memory (12D vs 16D)
+                </div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#dc2626', marginBottom: '6px' }}>
+                  6.4 GB → &gt;10.5 GB
+                </div>
+                <div style={{ fontSize: '0.92rem', color: '#475569' }}>
+                  Memory explodes exponentially with statevector dimension (2^n complex numbers).
+                </div>
+              </div>
+
+              <div className="clean-card" style={{ padding: '20px' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  Classical RBF Memory
+                </div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#059669', marginBottom: '6px' }}>
+                  122 MB (Constant)
+                </div>
+                <div style={{ fontSize: '0.92rem', color: '#475569' }}>
+                  Scales linearly with feature dimensions, avoiding statevector representation explosion.
+                </div>
               </div>
             </div>
           </div>
