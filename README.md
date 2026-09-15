@@ -4,7 +4,7 @@ emoji: ⚛️
 colorFrom: indigo
 colorTo: blue
 sdk: gradio
-app_file: app.py
+app_file: server.py
 pinned: false
 ---
 
