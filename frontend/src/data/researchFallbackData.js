@@ -3175,35 +3175,56 @@ export function simulateClientInference({ text, subject, body, representation = 
   const fullText = subject ? `Subject: ${subject}\n\n${body || text || ''}` : (text || body || '');
   const lower = fullText.toLowerCase();
   
-  const hamSignals = [
-    'github', 'build succeeded', 'commit', 'unit tests', 'workflow',
-    'actions/runs', 'meeting', 'agenda', 'sync', 'manuscript',
-    'research', 'team', 'regards', 'thanks', 'schedule', 'conference',
-    'passed without warnings', 'alignment meeting', 'pull request'
+  // Weighted Legitimate / Ham Indicators
+  const hamKeywords = [
+    ['github', 4], ['gitlab', 4], ['bitbucket', 4],
+    ['build succeeded', 5], ['build failed', 4], ['commit', 3], ['pull request', 4], ['merge request', 4],
+    ['unit tests', 4], ['ci/cd', 3], ['workflow', 3], ['actions/runs', 5], ['pipeline', 3],
+    ['meeting', 3], ['agenda', 4], ['sync', 3], ['synchronization', 3], ['rescheduled', 2],
+    ['manuscript', 3], ['draft', 2], ['research', 3], ['benchmark', 3], ['paper', 2],
+    ['team', 2], ['regards', 2], ['thanks', 2], ['thank you', 2], ['hi team', 4], ['dear team', 3],
+    ['lunch', 3], ['dinner', 2], ['coffee', 2], ['tomorrow', 1], ['hey ', 2], ['hi ', 1],
+    ['passed without warnings', 4], ['alignment meeting', 4], ['conference room', 3]
   ];
   
-  const phishSignals = [
-    'unauthorized login', 'account security verification', 'immediate account security',
-    'access will be suspended', 're-verify your identity', 'auth-portal-secure',
-    'lottery prize award', 'selected as the lucky winner', 'claim your prize',
-    'fiduciary agent', 'intl-claims-payout', 'verify?token=', 'urgent account suspension',
-    'bank account has been locked', 'reset password immediately', 'overdue invoice',
-    'wire transfer', 'western union', 'crypto wallet', 'seed phrase',
-    'suspended within 24 hours', 'immediate action required'
+  // Weighted Malicious / Phishing & Fraud Indicators
+  const phishKeywords = [
+    ['urgent', 3], ['immediately', 3], ['immediate', 2], ['action required', 4],
+    ['suspended', 4], ['suspension', 4], ['permanently blocked', 5], ['blocked', 3], ['locked', 4],
+    ['unauthorized', 4], ['suspicious activity', 4], ['security alert', 4], ['fraud alert', 4],
+    ['verify your', 4], ['verification', 3], ['re-verify', 4], ['confirm your', 3], ['verify details', 4],
+    ['bank account', 4], ['banking details', 4], ['credit card', 4], ['debit card', 4], ['payroll', 3],
+    ['password', 3], ['reset password', 4], ['login details', 4], ['credentials', 4],
+    ['winner', 4], ['winning', 3], ['lottery', 4], ['prize', 4], ['claim your', 4], ['won the', 3],
+    ['fiduciary', 4], ['wire transfer', 4], ['western union', 4], ['crypto wallet', 4], ['seed phrase', 5],
+    ['within 12 hr', 4], ['within 24 hr', 4], ['within 48 hr', 4], ['hours to verify', 4],
+    ['secure-bank', 5], ['auth-portal', 5], ['account-update', 5], ['verify.co', 5], ['login', 2],
+    ['free entry', 4], ['txt to', 4], ['text to', 3], ['claim now', 4], ['won $', 4], ['overdue invoice', 4]
   ];
 
-  let hamCount = 0;
-  hamSignals.forEach(w => {
-    if (lower.includes(w)) hamCount++;
+  let hamScore = 0;
+  hamKeywords.forEach(([phrase, weight]) => {
+    if (lower.includes(phrase)) hamScore += weight;
   });
 
-  let phishCount = 0;
-  phishSignals.forEach(w => {
-    if (lower.includes(w)) phishCount++;
+  let phishScore = 0;
+  phishKeywords.forEach(([phrase, weight]) => {
+    if (lower.includes(phrase)) phishScore += weight;
   });
 
-  // Determine classification based on balanced signals
-  const isPhishing = phishCount > hamCount && phishCount >= 1;
+  // Check for suspicious URL patterns with action tokens
+  if (lower.includes('http://') || lower.includes('https://') || lower.includes('.co/') || lower.includes('.xyz/') || lower.includes('.top/')) {
+    const actionTokens = ['verify', 'login', 'account', 'secure', 'auth', 'update', 'claim', 'banking', 'confirm'];
+    if (actionTokens.some(w => lower.includes(w))) {
+      const trustedDomains = ['github.com', 'google.com', 'zoom.us', 'slack.com', 'microsoft.com', 'apple.com', 'actions/runs'];
+      if (!trustedDomains.some(trusted => lower.includes(trusted))) {
+        phishScore += 6;
+      }
+    }
+  }
+
+  // Determine maliciousness
+  const isPhishing = phishScore >= 3 && phishScore > hamScore;
   
   const repNames = {
     tfidf: 'Canonical TF-IDF + TruncatedSVD (8D)',
@@ -3212,13 +3233,16 @@ export function simulateClientInference({ text, subject, body, representation = 
     mpnet: 'MPNet-base Contextual (8D)'
   };
   
-  const scoreQuantum = isPhishing ? +(1.85 + phishCount * 0.35) : -(2.25 + hamCount * 0.25);
+  const phishMultiplier = Math.min(4.0, 1.5 + phishScore * 0.12);
+  const hamMultiplier = Math.min(4.0, 1.8 + hamScore * 0.15);
+
+  const scoreQuantum = isPhishing ? +(1.95 + phishMultiplier * 0.35) : -(2.15 + hamMultiplier * 0.28);
   const probQuantum = +(1 / (1 + Math.exp(-scoreQuantum))).toFixed(4);
   
-  const scoreRbf = isPhishing ? +(2.15 + phishCount * 0.32) : -(2.52 + hamCount * 0.28);
+  const scoreRbf = isPhishing ? +(2.25 + phishMultiplier * 0.32) : -(2.45 + hamMultiplier * 0.30);
   const probRbf = +(1 / (1 + Math.exp(-scoreRbf))).toFixed(4);
   
-  const scoreLin = isPhishing ? +(1.55 + phishCount * 0.28) : -(1.95 + hamCount * 0.22);
+  const scoreLin = isPhishing ? +(1.65 + phishMultiplier * 0.28) : -(1.85 + hamMultiplier * 0.25);
   const probLin = +(1 / (1 + Math.exp(-scoreLin))).toFixed(4);
 
   const coords = Array.from({ length: dimension }, (_, i) => {
