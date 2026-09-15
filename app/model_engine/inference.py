@@ -68,6 +68,21 @@ class InferenceEngine:
             df['label'] = (df['label_str'] == 'spam').astype(int)
             texts = df['text'].astype(str).tolist()[:500]
             labels = df['label'].to_numpy()[:500]
+        else:
+            # Fallback synthetic reference corpus for standalone cloud deployments
+            texts = [
+                "URGENT: Your bank account has been locked. Verify identity at http://secure-login.com",
+                "Congratulations! You won the international lottery prize of $1,000,000. Claim now.",
+                "Security Alert: Suspicious login attempt from unknown device. Reset password here.",
+                "Dear customer, your invoice is overdue. Please download attachment to review charges.",
+                "Final Notice: Your email service will be terminated within 24 hours without confirmation.",
+                "Free entry in 2 a wkly comp to win FA Cup final tkts 21st May 2005. Text FA to 87121",
+                "Hi Pavan, are we still meeting tomorrow for the weekly research engineering sync?",
+                "The project presentation has been rescheduled to Thursday at 3 PM in conference room A.",
+                "Please find attached the updated research manuscript draft for review.",
+                "Let me know when you have time to review the experimental benchmark figures."
+            ] * 20
+            labels = np.array([1, 1, 1, 1, 1, 1, 0, 0, 0, 0] * 20)
 
         self.train_texts = texts
         self.train_y = labels
