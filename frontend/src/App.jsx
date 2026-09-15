@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, ShieldAlert, Cpu, Activity, BarChart2, 
   Database, GitCommit, Layers, Clock, Zap, RefreshCw, 
-  CheckCircle, AlertTriangle, MessageSquare, Mail, Sparkles
+  CheckCircle, AlertTriangle, MessageSquare, Mail, Sparkles,
+  Settings, Server, X
 } from 'lucide-react';
 import { 
   ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, 
@@ -529,7 +530,10 @@ export default function App() {
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>
                     Comparative Inference Results
                   </h3>
-                  <TimingScopeBadge scope="live" />
+                  <TimingScopeBadge 
+                    scope={predictionResult?.timing_scope?.includes('fallback') ? 'fallback' : 'live'} 
+                    customText={predictionResult?.timing_scope} 
+                  />
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>

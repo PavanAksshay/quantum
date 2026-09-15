@@ -6,6 +6,26 @@ import { Clock, Zap, AlertCircle } from 'lucide-react';
  * Explicitly disambiguates Live Request Latency from Research Benchmark Runtimes.
  */
 export default function TimingScopeBadge({ scope = 'live', customText = null }) {
+  if (scope === 'fallback') {
+    return (
+      <span style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        background: '#fffbeb',
+        border: '1px solid #fde68a',
+        color: '#b45309',
+        padding: '3px 9px',
+        borderRadius: '6px',
+        fontSize: '0.82rem',
+        fontWeight: 600
+      }}>
+        <AlertCircle size={13} color="#d97706" />
+        {customText || "Client-side simulation fallback"}
+      </span>
+    );
+  }
+
   if (scope === 'live') {
     return (
       <span style={{
