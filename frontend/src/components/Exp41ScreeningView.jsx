@@ -11,7 +11,7 @@ import {
 import ExperimentStatusBadge from './ExperimentStatusBadge';
 import TimingScopeBadge from './TimingScopeBadge';
 
-const API_BASE = 'http://127.0.0.1:8000';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000';
 
 export default function Exp41ScreeningView() {
   const [expData, setExpData] = useState(null);

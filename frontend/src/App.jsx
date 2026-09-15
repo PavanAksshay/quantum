@@ -14,7 +14,7 @@ import ExperimentStatusBadge from './components/ExperimentStatusBadge';
 import TextRepresentationInspector from './components/TextRepresentationInspector';
 import RepresentationLab from './components/RepresentationLab';
 
-const API_BASE = 'http://127.0.0.1:8000';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('prediction');

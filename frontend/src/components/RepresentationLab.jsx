@@ -11,7 +11,7 @@ import ExperimentStatusBadge from './ExperimentStatusBadge';
 import TimingScopeBadge from './TimingScopeBadge';
 import Exp41ScreeningView from './Exp41ScreeningView';
 
-const API_BASE = 'http://127.0.0.1:8000';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000';
 
 export default function RepresentationLab({ onSelectRepresentation, currentRepId = 'tfidf' }) {
   const [subTab, setSubTab] = useState('exp41'); // 'overview' | 'exp41'
