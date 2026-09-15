@@ -9,75 +9,86 @@ DPI = 150
 FIG_W = CANVAS_W / DPI # 8 inches
 FIG_H = CANVAS_H / DPI # 8 inches
 
+# Professional Monochrome / Slate Color Palette (No blue, no rounded pills)
+COLOR_BG = '#FFFFFF'
+COLOR_TITLE = '#0F172A'       # Deep black / slate
+COLOR_SUBTITLE = '#334155'    # Charcoal
+COLOR_BODY = '#475569'        # Medium slate
+COLOR_MUTED = '#64748B'       # Light slate
+COLOR_BORDER = '#E2E8F0'      # Clean subtle divider line
+COLOR_ACCENT = '#0F172A'      # High-contrast dark accent
+
 def create_slide_1(output_path):
     fig = plt.figure(figsize=(FIG_W, FIG_H), dpi=DPI)
-    fig.patch.set_facecolor('#FFFFFF') # Clean pure white
+    fig.patch.set_facecolor(COLOR_BG)
     
     ax = fig.add_axes([0, 0, 1, 1], xlim=(0, 1), ylim=(0, 1))
-    ax.set_facecolor('#FFFFFF')
+    ax.set_facecolor(COLOR_BG)
     ax.axis('off')
     
-    # Top Tag
-    ax.text(0.08, 0.92, "  QUANTUM MACHINE LEARNING RESEARCH  ", 
-            color="#1D4ED8", fontsize=10.5, fontweight='bold',
-            bbox=dict(boxstyle="round,pad=0.45", facecolor="#EFF6FF", edgecolor="#BFDBFE", alpha=1.0, lw=1.2))
+    # Top Tag (Plain clean text with subtle underline)
+    ax.text(0.08, 0.92, "QUANTUM MACHINE LEARNING RESEARCH", 
+            color=COLOR_TITLE, fontsize=10, fontweight='bold')
+    ax.plot([0.08, 0.92], [0.895, 0.895], color=COLOR_TITLE, lw=1.5)
     
     # Big Headline
-    ax.text(0.08, 0.72, "I went looking for a\nQuantum Advantage in\nText Security.", 
-            color="#0F172A", fontsize=23, fontweight='bold', linespacing=1.25)
+    ax.text(0.08, 0.73, "I went looking for a\nQuantum Advantage in\nText Security.", 
+            color=COLOR_TITLE, fontsize=24, fontweight='bold', linespacing=1.2)
     
-    ax.text(0.08, 0.58, "Here is what the empirical data actually revealed.", 
-            color="#2563EB", fontsize=14.5, fontweight='bold')
+    ax.text(0.08, 0.60, "Here is what the empirical data actually revealed.", 
+            color=COLOR_SUBTITLE, fontsize=14.5, fontweight='bold')
     
     # Divider line
-    ax.plot([0.08, 0.92], [0.54, 0.54], color="#E2E8F0", lw=2)
+    ax.plot([0.08, 0.92], [0.56, 0.56], color=COLOR_BORDER, lw=1.5)
     
-    # Pillar Cards (4 structured boxes)
+    # 4 Structured Pillars with clean straight lines
     pillars = [
-        ("01 / CONTROLLED BENCHMARK", "Fidelity kernels vs RBF & Linear across 10 matched seeds & 2D–12D."),
-        ("02 / THE 'VANISHING' EFFECT", "Why an initial +1.14 pp MiniLM gain collapsed to -2.23 pp upon replication."),
-        ("03 / CIRCUIT DEPTH PARADOX", "Why adding ZZFeatureMap layers degraded F1 from 0.533 down to 0.320."),
-        ("04 / GEOMETRIC MECHANISM", "Why classical distance preservation (r = 0.77) governs quantum F1.")
+        ("01", "CONTROLLED BENCHMARK", "Fidelity kernels vs RBF & Linear across 10 matched seeds & 2D–12D."),
+        ("02", "THE 'VANISHING' EFFECT", "Why an initial +1.14 pp MiniLM gain collapsed to -2.23 pp upon replication."),
+        ("03", "CIRCUIT DEPTH PARADOX", "Why adding ZZFeatureMap layers degraded F1 from 0.533 down to 0.320."),
+        ("04", "GEOMETRIC MECHANISM", "Why classical distance preservation (r = 0.77) governs quantum F1.")
     ]
     
-    y_starts = [0.44, 0.33, 0.22, 0.11]
-    for i, (head, sub) in enumerate(pillars):
+    y_starts = [0.47, 0.36, 0.25, 0.14]
+    for i, (num, head, sub) in enumerate(pillars):
         y = y_starts[i]
-        # Box background
-        rect = plt.Rectangle((0.08, y - 0.035), 0.84, 0.09, 
-                             facecolor='#F8FAFC', edgecolor='#E2E8F0', lw=1.2, 
-                             transform=ax.transAxes, zorder=1)
-        ax.add_patch(rect)
-        ax.text(0.11, y + 0.022, head, color="#1D4ED8", fontsize=10, fontweight='bold', zorder=2)
-        ax.text(0.11, y - 0.015, sub, color="#475569", fontsize=9.2, zorder=2)
+        # Left border bar
+        ax.plot([0.08, 0.08], [y - 0.03, y + 0.03], color=COLOR_TITLE, lw=3)
+        # Numbers & text
+        ax.text(0.10, y + 0.012, f"{num}  |  {head}", color=COLOR_TITLE, fontsize=10.5, fontweight='bold')
+        ax.text(0.10, y - 0.022, sub, color=COLOR_BODY, fontsize=9.5)
+        # Bottom light separator (except last)
+        if i < 3:
+            ax.plot([0.08, 0.92], [y - 0.045, y - 0.045], color=COLOR_BORDER, lw=0.8, ls=':')
 
     # Footer
-    ax.text(0.08, 0.04, "SWIPE TO EXPLORE THE EVIDENCE  →", color="#1D4ED8", fontsize=10.5, fontweight='bold')
-    ax.text(0.92, 0.04, "Slide 1 / 6", color="#64748B", fontsize=10, fontweight='bold', ha='right')
+    ax.plot([0.08, 0.92], [0.07, 0.07], color=COLOR_BORDER, lw=1.2)
+    ax.text(0.08, 0.035, "SWIPE TO EXPLORE THE EVIDENCE  →", color=COLOR_TITLE, fontsize=10, fontweight='bold')
+    ax.text(0.92, 0.035, "Slide 1 / 6", color=COLOR_MUTED, fontsize=9.5, fontweight='bold', ha='right')
     
     plt.savefig(output_path, dpi=DPI, facecolor=fig.get_facecolor())
     plt.close()
 
 def create_slide_with_image(output_path, slide_num, tag, title, bullets, image_path, takeaway):
     fig = plt.figure(figsize=(FIG_W, FIG_H), dpi=DPI)
-    fig.patch.set_facecolor('#FFFFFF') # Pure white background
+    fig.patch.set_facecolor(COLOR_BG)
     
     ax = fig.add_axes([0, 0, 1, 1], xlim=(0, 1), ylim=(0, 1))
-    ax.set_facecolor('#FFFFFF')
+    ax.set_facecolor(COLOR_BG)
     ax.axis('off')
     
-    # Header Tag
-    ax.text(0.07, 0.93, f"  {tag.upper()}  ", color="#1D4ED8", fontsize=9.5, fontweight='bold',
-            bbox=dict(boxstyle="round,pad=0.35", facecolor="#EFF6FF", edgecolor="#BFDBFE", alpha=1.0, lw=1.2))
+    # Top Tag
+    ax.text(0.07, 0.935, tag.upper(), color=COLOR_MUTED, fontsize=9.5, fontweight='bold')
+    ax.plot([0.07, 0.93], [0.915, 0.915], color=COLOR_BORDER, lw=1.2)
     
     # Title
-    ax.text(0.07, 0.865, title, color="#0F172A", fontsize=17, fontweight='bold')
+    ax.text(0.07, 0.865, title, color=COLOR_TITLE, fontsize=17, fontweight='bold')
     
-    # Bullet points
+    # Bullet points (clean dark text)
     y = 0.81
     for b in bullets:
-        ax.text(0.07, y, f"•  {b}", color="#334155", fontsize=10, wrap=True)
-        y -= 0.038
+        ax.text(0.07, y, f"—  {b}", color=COLOR_SUBTITLE, fontsize=9.8, wrap=True)
+        y -= 0.036
     
     # Embed image
     if os.path.exists(image_path):
@@ -86,23 +97,21 @@ def create_slide_with_image(output_path, slide_num, tag, title, bullets, image_p
         img_ax.imshow(img)
         img_ax.axis('off')
         
-        # Subtle light border
+        # Crisp square border
         for spine in img_ax.spines.values():
-            spine.set_edgecolor('#E2E8F0')
+            spine.set_edgecolor(COLOR_BORDER)
             spine.set_linewidth(1.2)
             spine.set_visible(True)
 
-    # Takeaway Callout Box
-    rect = plt.Rectangle((0.07, 0.075), 0.86, 0.068, 
-                         facecolor='#FEFCE8', edgecolor='#FDE047', lw=1.2, 
-                         transform=ax.transAxes, zorder=1)
-    ax.add_patch(rect)
-    ax.text(0.09, 0.11, "KEY TAKEAWAY:", color="#B45309", fontsize=9, fontweight='bold', zorder=2)
-    ax.text(0.09, 0.088, takeaway, color="#1E293B", fontsize=9, zorder=2)
+    # Takeaway Section (Clean left-accent bar instead of yellow/rounded box)
+    ax.plot([0.07, 0.07], [0.075, 0.14], color=COLOR_TITLE, lw=3.5)
+    ax.text(0.085, 0.118, "KEY TAKEAWAY", color=COLOR_TITLE, fontsize=9, fontweight='bold')
+    ax.text(0.085, 0.088, takeaway, color=COLOR_BODY, fontsize=9)
     
     # Footer
-    ax.text(0.07, 0.03, "Pavan Aksshay • Quantum Text Security Research", color="#64748B", fontsize=9)
-    ax.text(0.93, 0.03, f"Slide {slide_num} / 6", color="#64748B", fontsize=9.5, fontweight='bold', ha='right')
+    ax.plot([0.07, 0.93], [0.055, 0.055], color=COLOR_BORDER, lw=1.0)
+    ax.text(0.07, 0.025, "Pavan Aksshay • Quantum Text Security Research", color=COLOR_MUTED, fontsize=9)
+    ax.text(0.93, 0.025, f"Slide {slide_num} / 6", color=COLOR_MUTED, fontsize=9.5, fontweight='bold', ha='right')
     
     plt.savefig(output_path, dpi=DPI, facecolor=fig.get_facecolor())
     plt.close()
@@ -198,7 +207,7 @@ def main():
         append_images=images[1:], 
         resolution=150.0
     )
-    print(f"\n✅ Successfully generated clean white theme LinkedIn Carousel PDF: {pdf_path}")
+    print(f"\n✅ Successfully generated clean monochrome/minimalist LinkedIn Carousel PDF: {pdf_path}")
 
 if __name__ == "__main__":
     main()
