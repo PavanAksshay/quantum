@@ -3175,13 +3175,35 @@ export function simulateClientInference({ text, subject, body, representation = 
   const fullText = subject ? `Subject: ${subject}\n\n${body || text || ''}` : (text || body || '');
   const lower = fullText.toLowerCase();
   
-  const phishWords = ['urgent', 'verify', 'verification', 'suspended', 'portal', 'token', 'security alert', 'unauthorized', 'lottery', 'winner', 'prize', 'claim', 'funds', 'fiduciary', 'login', 'payroll', 'immediate', 'password', 'bank', 'blocked', 'update.com'];
-  let hitCount = 0;
-  phishWords.forEach(w => {
-    if (lower.includes(w)) hitCount++;
-  });
+  const hamSignals = [
+    'github', 'build succeeded', 'commit', 'unit tests', 'workflow',
+    'actions/runs', 'meeting', 'agenda', 'sync', 'manuscript',
+    'research', 'team', 'regards', 'thanks', 'schedule', 'conference',
+    'passed without warnings', 'alignment meeting', 'pull request'
+  ];
   
-  const isPhishing = hitCount >= 2 || lower.includes('http') || lower.includes('verify') || lower.includes('token') || lower.includes('winner') || lower.includes('suspended');
+  const phishSignals = [
+    'unauthorized login', 'account security verification', 'immediate account security',
+    'access will be suspended', 're-verify your identity', 'auth-portal-secure',
+    'lottery prize award', 'selected as the lucky winner', 'claim your prize',
+    'fiduciary agent', 'intl-claims-payout', 'verify?token=', 'urgent account suspension',
+    'bank account has been locked', 'reset password immediately', 'overdue invoice',
+    'wire transfer', 'western union', 'crypto wallet', 'seed phrase',
+    'suspended within 24 hours', 'immediate action required'
+  ];
+
+  let hamCount = 0;
+  hamSignals.forEach(w => {
+    if (lower.includes(w)) hamCount++;
+  });
+
+  let phishCount = 0;
+  phishSignals.forEach(w => {
+    if (lower.includes(w)) phishCount++;
+  });
+
+  // Determine classification based on balanced signals
+  const isPhishing = phishCount > hamCount && phishCount >= 1;
   
   const repNames = {
     tfidf: 'Canonical TF-IDF + TruncatedSVD (8D)',
@@ -3190,13 +3212,13 @@ export function simulateClientInference({ text, subject, body, representation = 
     mpnet: 'MPNet-base Contextual (8D)'
   };
   
-  const scoreQuantum = isPhishing ? +(1.85 + hitCount * 0.42) : -(1.92 + Math.random() * 0.25);
+  const scoreQuantum = isPhishing ? +(1.85 + phishCount * 0.35) : -(2.25 + hamCount * 0.25);
   const probQuantum = +(1 / (1 + Math.exp(-scoreQuantum))).toFixed(4);
   
-  const scoreRbf = isPhishing ? +(2.15 + hitCount * 0.38) : -(2.18 + Math.random() * 0.25);
+  const scoreRbf = isPhishing ? +(2.15 + phishCount * 0.32) : -(2.52 + hamCount * 0.28);
   const probRbf = +(1 / (1 + Math.exp(-scoreRbf))).toFixed(4);
   
-  const scoreLin = isPhishing ? +(1.55 + hitCount * 0.32) : -(1.62 + Math.random() * 0.25);
+  const scoreLin = isPhishing ? +(1.55 + phishCount * 0.28) : -(1.95 + hamCount * 0.22);
   const probLin = +(1 / (1 + Math.exp(-scoreLin))).toFixed(4);
 
   const coords = Array.from({ length: dimension }, (_, i) => {
