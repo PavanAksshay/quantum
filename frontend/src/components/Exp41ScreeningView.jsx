@@ -11,12 +11,12 @@ import {
 import ExperimentStatusBadge from './ExperimentStatusBadge';
 import TimingScopeBadge from './TimingScopeBadge';
 
-import { DEFAULT_EXP41_COMPARISON, DEFAULT_EXP41_GEOMETRY } from '../data/researchFallbackData';
+import { DEFAULT_EXP41_COMPARISON, DEFAULT_EXP41_GEOMETRY, DEFAULT_EXP41_DATA } from '../data/researchFallbackData';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000';
 
 export default function Exp41ScreeningView() {
-  const [expData, setExpData] = useState({ screening_results: [] });
+  const [expData, setExpData] = useState(DEFAULT_EXP41_DATA);
   const [comparisonData, setComparisonData] = useState(DEFAULT_EXP41_COMPARISON);
   const [geometryData, setGeometryData] = useState(DEFAULT_EXP41_GEOMETRY);
   const [statusData, setStatusData] = useState({ status: 'READY', canonical_status: 'EXPLORATORY' });
@@ -35,7 +35,7 @@ export default function Exp41ScreeningView() {
       fetch(`${API_BASE}/api/research/representation/geometry`).then(r => r.json()),
       fetch(`${API_BASE}/api/research/representation/status`).then(r => r.json())
     ]).then(([exp, comp, geom, stat]) => {
-      if (exp && typeof exp === 'object') setExpData(exp);
+      if (exp && typeof exp === 'object' && Array.isArray(exp.summary) && exp.summary.length > 0) setExpData(exp);
       if (Array.isArray(comp) && comp.length > 0) setComparisonData(comp);
       if (Array.isArray(geom) && geom.length > 0) setGeometryData(geom);
       if (stat && typeof stat === 'object') setStatusData(stat);
@@ -43,11 +43,14 @@ export default function Exp41ScreeningView() {
   }, []);
 
   // Filtered raw records
-  const rawResults = expData?.screening_results || [];
+  const rawResults = (expData?.screening_results && expData.screening_results.length > 0) 
+    ? expData.screening_results 
+    : DEFAULT_EXP41_DATA.screening_results;
+
   const filteredRecords = rawResults.filter(row => {
-    if (filterDataset !== 'all' && row.dataset.toLowerCase() !== filterDataset.toLowerCase()) return false;
-    if (filterRep !== 'all' && row.representation.toLowerCase() !== filterRep.toLowerCase()) return false;
-    if (filterModel !== 'all' && !row.model.toLowerCase().includes(filterModel.toLowerCase())) return false;
+    if (filterDataset !== 'all' && row?.dataset?.toLowerCase() !== filterDataset.toLowerCase()) return false;
+    if (filterRep !== 'all' && row?.representation?.toLowerCase() !== filterRep.toLowerCase()) return false;
+    if (filterModel !== 'all' && !row?.model?.toLowerCase().includes(filterModel.toLowerCase())) return false;
     return true;
   });
 
@@ -58,18 +61,21 @@ export default function Exp41ScreeningView() {
   const diffChartData = representationsList.map(rep => {
     const row = { representation: rep.toUpperCase() };
     chartDatasets.forEach(ds => {
-      const match = comparisonData.find(c => c.dataset.toLowerCase() === ds && c.representation.toLowerCase() === rep);
+      const match = (comparisonData || []).find(c => c?.dataset?.toLowerCase() === ds && c?.representation?.toLowerCase() === rep);
       row[ds] = match ? match.delta_f1_q_minus_rbf : null;
     });
     return row;
   });
 
   // Heatmap rows for selected dataset
+  const summary = (expData?.summary && expData.summary.length > 0) 
+    ? expData.summary 
+    : DEFAULT_EXP41_DATA.summary;
+
   const heatmapRows = representationsList.map(rep => {
-    const summary = expData?.summary || [];
-    const lin = summary.find(s => s.dataset.toLowerCase() === heatmapDataset.toLowerCase() && s.representation.toLowerCase() === rep && s.model.includes('Linear'));
-    const rbf = summary.find(s => s.dataset.toLowerCase() === heatmapDataset.toLowerCase() && s.representation.toLowerCase() === rep && s.model.includes('RBF'));
-    const q = summary.find(s => s.dataset.toLowerCase() === heatmapDataset.toLowerCase() && s.representation.toLowerCase() === rep && s.model.includes('Quantum'));
+    const lin = summary.find(s => s?.dataset?.toLowerCase() === heatmapDataset.toLowerCase() && s?.representation?.toLowerCase() === rep && s?.model?.includes('Linear'));
+    const rbf = summary.find(s => s?.dataset?.toLowerCase() === heatmapDataset.toLowerCase() && s?.representation?.toLowerCase() === rep && s?.model?.includes('RBF'));
+    const q = summary.find(s => s?.dataset?.toLowerCase() === heatmapDataset.toLowerCase() && s?.representation?.toLowerCase() === rep && s?.model?.includes('Quantum'));
 
     return {
       representation: rep.toUpperCase(),
@@ -393,15 +399,15 @@ export default function Exp41ScreeningView() {
             <tbody>
               {filteredRecords.map((row, idx) => (
                 <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '8px 12px', fontWeight: 600 }}>{row.dataset.toUpperCase()}</td>
-                  <td style={{ padding: '8px 12px', fontWeight: 600, color: '#2563eb' }}>{row.representation.toUpperCase()}</td>
-                  <td style={{ padding: '8px 12px', color: '#0f172a' }}>{row.model}</td>
-                  <td style={{ padding: '8px 12px', color: '#64748b' }}>{row.seed}</td>
-                  <td style={{ padding: '8px 12px', fontWeight: 700, color: '#0f172a' }}>{row.f1.toFixed(4)}</td>
-                  <td style={{ padding: '8px 12px' }}>{row.pr_auc.toFixed(4)}</td>
-                  <td style={{ padding: '8px 12px' }}>{row.roc_auc.toFixed(4)}</td>
-                  <td style={{ padding: '8px 12px' }}>{(row.accuracy * 100).toFixed(1)}%</td>
-                  <td style={{ padding: '8px 12px', color: '#64748b' }}>{row.runtime_sec.toFixed(2)}s</td>
+                  <td style={{ padding: '8px 12px', fontWeight: 600 }}>{row?.dataset?.toUpperCase() ?? '—'}</td>
+                  <td style={{ padding: '8px 12px', fontWeight: 600, color: '#2563eb' }}>{row?.representation?.toUpperCase() ?? '—'}</td>
+                  <td style={{ padding: '8px 12px', color: '#0f172a' }}>{row?.model ?? '—'}</td>
+                  <td style={{ padding: '8px 12px', color: '#64748b' }}>{row?.seed ?? '—'}</td>
+                  <td style={{ padding: '8px 12px', fontWeight: 700, color: '#0f172a' }}>{row?.f1 != null ? row.f1.toFixed(4) : '—'}</td>
+                  <td style={{ padding: '8px 12px' }}>{row?.pr_auc != null ? row.pr_auc.toFixed(4) : '—'}</td>
+                  <td style={{ padding: '8px 12px' }}>{row?.roc_auc != null ? row.roc_auc.toFixed(4) : '—'}</td>
+                  <td style={{ padding: '8px 12px' }}>{row?.accuracy != null ? (row.accuracy * 100).toFixed(1) + '%' : '—'}</td>
+                  <td style={{ padding: '8px 12px', color: '#64748b' }}>{row?.runtime_sec != null ? row.runtime_sec.toFixed(2) + 's' : '—'}</td>
                 </tr>
               ))}
             </tbody>
