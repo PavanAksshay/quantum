@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from PIL import Image
 
-# Exact LinkedIn standard size: 1080 x 1350 (4:5 portrait) or 1200 x 1200 (1:1 square)
-# 1200 x 1200 is the most popular, universal, and reliable across mobile and desktop.
 CANVAS_W = 1200
 CANVAS_H = 1200
 DPI = 150
@@ -13,26 +11,26 @@ FIG_H = CANVAS_H / DPI # 8 inches
 
 def create_slide_1(output_path):
     fig = plt.figure(figsize=(FIG_W, FIG_H), dpi=DPI)
-    fig.patch.set_facecolor('#070D18') # Ultra-dark navy
+    fig.patch.set_facecolor('#FFFFFF') # Clean pure white
     
     ax = fig.add_axes([0, 0, 1, 1], xlim=(0, 1), ylim=(0, 1))
-    ax.set_facecolor('#070D18')
+    ax.set_facecolor('#FFFFFF')
     ax.axis('off')
     
     # Top Tag
     ax.text(0.08, 0.92, "  QUANTUM MACHINE LEARNING RESEARCH  ", 
-            color="#38BDF8", fontsize=10.5, fontweight='bold',
-            bbox=dict(boxstyle="round,pad=0.45", facecolor="#0369A1", edgecolor="#38BDF8", alpha=0.3, lw=1.2))
+            color="#1D4ED8", fontsize=10.5, fontweight='bold',
+            bbox=dict(boxstyle="round,pad=0.45", facecolor="#EFF6FF", edgecolor="#BFDBFE", alpha=1.0, lw=1.2))
     
     # Big Headline
     ax.text(0.08, 0.72, "I went looking for a\nQuantum Advantage in\nText Security.", 
-            color="#FFFFFF", fontsize=23, fontweight='bold', linespacing=1.25)
+            color="#0F172A", fontsize=23, fontweight='bold', linespacing=1.25)
     
     ax.text(0.08, 0.58, "Here is what the empirical data actually revealed.", 
-            color="#38BDF8", fontsize=14.5, fontweight='bold')
+            color="#2563EB", fontsize=14.5, fontweight='bold')
     
     # Divider line
-    ax.plot([0.08, 0.92], [0.54, 0.54], color="#1E293B", lw=2)
+    ax.plot([0.08, 0.92], [0.54, 0.54], color="#E2E8F0", lw=2)
     
     # Pillar Cards (4 structured boxes)
     pillars = [
@@ -47,39 +45,38 @@ def create_slide_1(output_path):
         y = y_starts[i]
         # Box background
         rect = plt.Rectangle((0.08, y - 0.035), 0.84, 0.09, 
-                             facecolor='#0F172A', edgecolor='#1E293B', lw=1.2, 
+                             facecolor='#F8FAFC', edgecolor='#E2E8F0', lw=1.2, 
                              transform=ax.transAxes, zorder=1)
         ax.add_patch(rect)
-        ax.text(0.11, y + 0.022, head, color="#38BDF8", fontsize=10, fontweight='bold', zorder=2)
-        ax.text(0.11, y - 0.015, sub, color="#94A3B8", fontsize=9.2, zorder=2)
+        ax.text(0.11, y + 0.022, head, color="#1D4ED8", fontsize=10, fontweight='bold', zorder=2)
+        ax.text(0.11, y - 0.015, sub, color="#475569", fontsize=9.2, zorder=2)
 
     # Footer
-    ax.text(0.08, 0.04, "SWIPE TO EXPLORE THE EVIDENCE  →", color="#FDE047", fontsize=10.5, fontweight='bold')
+    ax.text(0.08, 0.04, "SWIPE TO EXPLORE THE EVIDENCE  →", color="#1D4ED8", fontsize=10.5, fontweight='bold')
     ax.text(0.92, 0.04, "Slide 1 / 6", color="#64748B", fontsize=10, fontweight='bold', ha='right')
     
-    # Save with exact fixed canvas size
     plt.savefig(output_path, dpi=DPI, facecolor=fig.get_facecolor())
     plt.close()
 
 def create_slide_with_image(output_path, slide_num, tag, title, bullets, image_path, takeaway):
     fig = plt.figure(figsize=(FIG_W, FIG_H), dpi=DPI)
-    fig.patch.set_facecolor('#070D18')
+    fig.patch.set_facecolor('#FFFFFF') # Pure white background
     
     ax = fig.add_axes([0, 0, 1, 1], xlim=(0, 1), ylim=(0, 1))
-    ax.set_facecolor('#070D18')
+    ax.set_facecolor('#FFFFFF')
     ax.axis('off')
     
     # Header Tag
-    ax.text(0.07, 0.93, f"  {tag.upper()}  ", color="#38BDF8", fontsize=9.5, fontweight='bold',
-            bbox=dict(boxstyle="round,pad=0.35", facecolor="#0369A1", edgecolor="#38BDF8", alpha=0.3, lw=1.2))
+    ax.text(0.07, 0.93, f"  {tag.upper()}  ", color="#1D4ED8", fontsize=9.5, fontweight='bold',
+            bbox=dict(boxstyle="round,pad=0.35", facecolor="#EFF6FF", edgecolor="#BFDBFE", alpha=1.0, lw=1.2))
     
     # Title
-    ax.text(0.07, 0.865, title, color="#FFFFFF", fontsize=17, fontweight='bold')
+    ax.text(0.07, 0.865, title, color="#0F172A", fontsize=17, fontweight='bold')
     
     # Bullet points
     y = 0.81
     for b in bullets:
-        ax.text(0.07, y, f"•  {b}", color="#CBD5E1", fontsize=10, wrap=True)
+        ax.text(0.07, y, f"•  {b}", color="#334155", fontsize=10, wrap=True)
         y -= 0.038
     
     # Embed image
@@ -89,22 +86,22 @@ def create_slide_with_image(output_path, slide_num, tag, title, bullets, image_p
         img_ax.imshow(img)
         img_ax.axis('off')
         
-        # Border
+        # Subtle light border
         for spine in img_ax.spines.values():
-            spine.set_edgecolor('#1E293B')
-            spine.set_linewidth(1.5)
+            spine.set_edgecolor('#E2E8F0')
+            spine.set_linewidth(1.2)
             spine.set_visible(True)
 
     # Takeaway Callout Box
     rect = plt.Rectangle((0.07, 0.075), 0.86, 0.068, 
-                         facecolor='#1E293B', edgecolor='#EAB308', lw=1.2, 
+                         facecolor='#FEFCE8', edgecolor='#FDE047', lw=1.2, 
                          transform=ax.transAxes, zorder=1)
     ax.add_patch(rect)
-    ax.text(0.09, 0.11, "KEY TAKEAWAY:", color="#FDE047", fontsize=9, fontweight='bold', zorder=2)
-    ax.text(0.09, 0.088, takeaway, color="#F8FAFC", fontsize=9, zorder=2)
+    ax.text(0.09, 0.11, "KEY TAKEAWAY:", color="#B45309", fontsize=9, fontweight='bold', zorder=2)
+    ax.text(0.09, 0.088, takeaway, color="#1E293B", fontsize=9, zorder=2)
     
     # Footer
-    ax.text(0.07, 0.03, "Pavan Aksshay • Quantum Text Security", color="#64748B", fontsize=9)
+    ax.text(0.07, 0.03, "Pavan Aksshay • Quantum Text Security Research", color="#64748B", fontsize=9)
     ax.text(0.93, 0.03, f"Slide {slide_num} / 6", color="#64748B", fontsize=9.5, fontweight='bold', ha='right')
     
     plt.savefig(output_path, dpi=DPI, facecolor=fig.get_facecolor())
@@ -191,14 +188,8 @@ def main():
         takeaway="A rigorous negative result provides more actionable scientific insight than a false positive."
     )
     
-    # Save combined PDF
     slide_files = [f"carousel_slides/slide_{i}.png" for i in range(1, 7)]
     images = [Image.open(f).convert('RGB') for f in slide_files]
-    
-    # Verify all slides have identical dimensions
-    print("\nVerifying slide dimensions:")
-    for i, img in enumerate(images, 1):
-        print(f"  Slide {i}: {img.size}")
     
     pdf_path = "Quantum_Text_Security_LinkedIn_Carousel.pdf"
     images[0].save(
@@ -207,7 +198,7 @@ def main():
         append_images=images[1:], 
         resolution=150.0
     )
-    print(f"\n✅ Successfully generated unified LinkedIn Carousel PDF: {pdf_path}")
+    print(f"\n✅ Successfully generated clean white theme LinkedIn Carousel PDF: {pdf_path}")
 
 if __name__ == "__main__":
     main()
