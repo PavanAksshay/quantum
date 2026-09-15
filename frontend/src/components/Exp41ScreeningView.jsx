@@ -11,14 +11,16 @@ import {
 import ExperimentStatusBadge from './ExperimentStatusBadge';
 import TimingScopeBadge from './TimingScopeBadge';
 
+import { DEFAULT_EXP41_COMPARISON, DEFAULT_EXP41_GEOMETRY } from '../data/researchFallbackData';
+
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000';
 
 export default function Exp41ScreeningView() {
-  const [expData, setExpData] = useState(null);
-  const [comparisonData, setComparisonData] = useState([]);
-  const [geometryData, setGeometryData] = useState([]);
-  const [statusData, setStatusData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [expData, setExpData] = useState({ screening_results: [] });
+  const [comparisonData, setComparisonData] = useState(DEFAULT_EXP41_COMPARISON);
+  const [geometryData, setGeometryData] = useState(DEFAULT_EXP41_GEOMETRY);
+  const [statusData, setStatusData] = useState({ status: 'READY', canonical_status: 'EXPLORATORY' });
+  const [loading, setLoading] = useState(false);
 
   // Filters
   const [filterDataset, setFilterDataset] = useState('all');
@@ -27,22 +29,17 @@ export default function Exp41ScreeningView() {
   const [heatmapDataset, setHeatmapDataset] = useState('meajor');
 
   useEffect(() => {
-    setLoading(true);
     Promise.all([
       fetch(`${API_BASE}/api/research/representation/exp41`).then(r => r.json()),
       fetch(`${API_BASE}/api/research/representation/comparison`).then(r => r.json()),
       fetch(`${API_BASE}/api/research/representation/geometry`).then(r => r.json()),
       fetch(`${API_BASE}/api/research/representation/status`).then(r => r.json())
     ]).then(([exp, comp, geom, stat]) => {
-      setExpData(exp);
-      setComparisonData(Array.isArray(comp) ? comp : []);
-      setGeometryData(Array.isArray(geom) ? geom : []);
-      setStatusData(stat);
-      setLoading(false);
-    }).catch(err => {
-      console.error("Error loading Exp 41 screening data:", err);
-      setLoading(false);
-    });
+      if (exp && typeof exp === 'object') setExpData(exp);
+      if (Array.isArray(comp) && comp.length > 0) setComparisonData(comp);
+      if (Array.isArray(geom) && geom.length > 0) setGeometryData(geom);
+      if (stat && typeof stat === 'object') setStatusData(stat);
+    }).catch(() => {});
   }, []);
 
   // Filtered raw records

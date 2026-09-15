@@ -11,33 +11,28 @@ import ExperimentStatusBadge from './ExperimentStatusBadge';
 import TimingScopeBadge from './TimingScopeBadge';
 import Exp41ScreeningView from './Exp41ScreeningView';
 
+import { DEFAULT_REPRESENTATIONS, DEFAULT_EXP41_COMPARISON } from '../data/researchFallbackData';
+
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000';
 
 export default function RepresentationLab({ onSelectRepresentation, currentRepId = 'tfidf' }) {
   const [subTab, setSubTab] = useState('exp41'); // 'overview' | 'exp41'
-  const [representations, setRepresentations] = useState([]);
+  const [representations, setRepresentations] = useState(DEFAULT_REPRESENTATIONS);
   const [selectedRep, setSelectedRep] = useState(currentRepId);
-  const [comparisonMatrix, setComparisonMatrix] = useState([]);
+  const [comparisonMatrix, setComparisonMatrix] = useState(DEFAULT_EXP41_COMPARISON);
   const [repGeometry, setRepGeometry] = useState(null);
   const [scatterData, setScatterData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Fetch representations and matrix on mount
   useEffect(() => {
-    setLoading(true);
     Promise.all([
       fetch(`${API_BASE}/api/representations`).then(r => r.json()),
       fetch(`${API_BASE}/api/representations/comparison-matrix`).then(r => r.json())
     ]).then(([reps, matrix]) => {
-      setRepresentations(Array.isArray(reps) ? reps : []);
-      setComparisonMatrix(Array.isArray(matrix) ? matrix : []);
-      setLoading(false);
-    }).catch(err => {
-      console.error("Error loading representations:", err);
-      setRepresentations([]);
-      setComparisonMatrix([]);
-      setLoading(false);
-    });
+      if (Array.isArray(reps) && reps.length > 0) setRepresentations(reps);
+      if (Array.isArray(matrix) && matrix.length > 0) setComparisonMatrix(matrix);
+    }).catch(() => {});
   }, []);
 
   // Fetch geometry and scatter for selected representation

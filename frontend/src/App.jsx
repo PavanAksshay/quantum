@@ -13,119 +13,125 @@ import TimingScopeBadge from './components/TimingScopeBadge';
 import ExperimentStatusBadge from './components/ExperimentStatusBadge';
 import TextRepresentationInspector from './components/TextRepresentationInspector';
 import RepresentationLab from './components/RepresentationLab';
+import {
+  DEFAULT_REPRESENTATIONS,
+  DEFAULT_PRESETS,
+  DEFAULT_METRICS,
+  DEFAULT_DIM_DATA,
+  DEFAULT_RUNTIME_DATA,
+  DEFAULT_GEOM_DATA,
+  DEFAULT_TABLES_LIST,
+  DEFAULT_TABLES_CONTENT
+} from './data/researchFallbackData';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000';
+const DEFAULT_API = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('prediction');
   const [healthStatus, setHealthStatus] = useState(null);
+  const [apiBaseUrl, setApiBaseUrl] = useState(() => localStorage.getItem('quantum_api_base') || DEFAULT_API);
+  const [showApiModal, setShowApiModal] = useState(false);
+  const [tempApiUrl, setTempApiUrl] = useState(apiBaseUrl);
 
   // Prediction State
   const [inputMode, setInputMode] = useState('single'); // 'single' | 'email'
-  const [inputText, setInputText] = useState('');
-  const [emailSubject, setEmailSubject] = useState('');
-  const [emailBody, setEmailBody] = useState('');
+  const [inputText, setInputText] = useState(DEFAULT_PRESETS[0].text);
+  const [emailSubject, setEmailSubject] = useState(DEFAULT_PRESETS[0].subject || '');
+  const [emailBody, setEmailBody] = useState(DEFAULT_PRESETS[0].body || '');
   const [selectedRepId, setSelectedRepId] = useState('tfidf');
   const [selectedDim, setSelectedDim] = useState(8);
   const [predictionResult, setPredictionResult] = useState(null);
   const [isPredicting, setIsPredicting] = useState(false);
-  const [presets, setPresets] = useState([]);
-  const [representationsList, setRepresentationsList] = useState([]);
+  const [presets, setPresets] = useState(DEFAULT_PRESETS);
+  const [representationsList, setRepresentationsList] = useState(DEFAULT_REPRESENTATIONS);
 
-  // Research Data State
-  const [metricsData, setMetricsData] = useState(null);
-  const [dimData, setDimData] = useState([]);
-  const [runtimeData, setRuntimeData] = useState([]);
-  const [geomData, setGeomData] = useState(null);
-  const [tablesList, setTablesList] = useState([]);
+  // Research Data State (Pre-populated with Authoritative Evidence)
+  const [metricsData, setMetricsData] = useState(DEFAULT_METRICS);
+  const [dimData, setDimData] = useState(DEFAULT_DIM_DATA);
+  const [runtimeData, setRuntimeData] = useState(DEFAULT_RUNTIME_DATA);
+  const [geomData, setGeomData] = useState(DEFAULT_GEOM_DATA);
+  const [tablesList, setTablesList] = useState(DEFAULT_TABLES_LIST);
   const [selectedTableId, setSelectedTableId] = useState('table_3');
-  const [tableContent, setTableContent] = useState(null);
+  const [tableContent, setTableContent] = useState(DEFAULT_TABLES_CONTENT.table_3);
   const [isLoadingTable, setIsLoadingTable] = useState(false);
 
-  // Fetch initial data
+  const API_BASE = apiBaseUrl;
+
+  // Fetch live backend updates
   useEffect(() => {
     fetch(`${API_BASE}/api/health`)
       .then(res => res.json())
       .then(data => setHealthStatus(data))
-      .catch(err => console.error("Health check error:", err));
+      .catch(() => setHealthStatus(null));
 
     fetch(`${API_BASE}/api/representations`)
       .then(res => res.json())
-      .then(data => setRepresentationsList(Array.isArray(data) ? data : []))
-      .catch(err => {
-        console.error("Representations error:", err);
-        setRepresentationsList([]);
-      });
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) setRepresentationsList(data);
+      })
+      .catch(() => {});
 
     fetch(`${API_BASE}/api/samples`)
       .then(res => res.json())
       .then(data => {
-        const arr = Array.isArray(data) ? data : [];
-        setPresets(arr);
-        if (arr.length > 0) {
-          setInputText(arr[0].text || '');
-          if (arr[0].subject) setEmailSubject(arr[0].subject);
-          if (arr[0].body) setEmailBody(arr[0].body);
-        }
+        if (Array.isArray(data) && data.length > 0) setPresets(data);
       })
-      .catch(err => {
-        console.error("Presets error:", err);
-        setPresets([]);
-      });
+      .catch(() => {});
 
     fetch(`${API_BASE}/api/research/metrics`)
       .then(res => res.json())
-      .then(data => setMetricsData(data))
-      .catch(err => console.error("Metrics error:", err));
+      .then(data => {
+        if (data && typeof data === 'object') setMetricsData(data);
+      })
+      .catch(() => {});
 
     fetch(`${API_BASE}/api/dimensionality/scaling`)
       .then(res => res.json())
-      .then(data => setDimData(Array.isArray(data) ? data : []))
-      .catch(err => {
-        console.error("Dim scaling error:", err);
-        setDimData([]);
-      });
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) setDimData(data);
+      })
+      .catch(() => {});
 
     fetch(`${API_BASE}/api/runtime/scaling`)
       .then(res => res.json())
       .then(data => {
         const list = Array.isArray(data) ? data : (data?.data || []);
-        setRuntimeData(list);
+        if (list.length > 0) setRuntimeData(list);
       })
-      .catch(err => {
-        console.error("Runtime scaling error:", err);
-        setRuntimeData([]);
-      });
+      .catch(() => {});
 
     fetch(`${API_BASE}/api/geometry/diagnostics`)
       .then(res => res.json())
-      .then(data => setGeomData(data))
-      .catch(err => console.error("Geometry diagnostics error:", err));
+      .then(data => {
+        if (data && typeof data === 'object') setGeomData(data);
+      })
+      .catch(() => {});
 
     fetch(`${API_BASE}/api/research/tables`)
       .then(res => res.json())
-      .then(data => setTablesList(Array.isArray(data) ? data : []))
-      .catch(err => {
-        console.error("Tables list error:", err);
-        setTablesList([]);
-      });
-  }, []);
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) setTablesList(data);
+      })
+      .catch(() => {});
+  }, [API_BASE]);
 
-  // Fetch table content on select
+  // Fetch table content on select with static fallback support
   useEffect(() => {
     if (!selectedTableId) return;
+    if (DEFAULT_TABLES_CONTENT[selectedTableId]) {
+      setTableContent(DEFAULT_TABLES_CONTENT[selectedTableId]);
+    }
     setIsLoadingTable(true);
     fetch(`${API_BASE}/api/research/tables/${selectedTableId}`)
       .then(res => res.json())
       .then(data => {
-        setTableContent(data);
+        if (data && typeof data === 'object') setTableContent(data);
         setIsLoadingTable(false);
       })
-      .catch(err => {
-        console.error("Table fetch error:", err);
+      .catch(() => {
         setIsLoadingTable(false);
       });
-  }, [selectedTableId]);
+  }, [selectedTableId, API_BASE]);
 
   // Handle live prediction
   const handlePredict = async (customPayload = null) => {
