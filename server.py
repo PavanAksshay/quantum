@@ -1,24 +1,18 @@
-import spaces
 import gradio as gr
 from app.api import app as fastapi_app
 
-# ZeroGPU Anchor Function connected to Gradio Blocks event
-@spaces.GPU(duration=120)
-def zero_gpu_inference(text: str):
-    """ZeroGPU execution trigger scanned on startup."""
-    return f"ZeroGPU Hardware Active: {text}"
-
-# Mount FastAPI app onto Gradio Blocks with active ZeroGPU event listener
+# Interactive Status Interface
 with gr.Blocks(title="Quantum Text Security API") as demo:
-    gr.Markdown("# ⚛️ Quantum Text Security Backend API")
-    gr.Markdown("FastAPI backend is active on ZeroGPU! All REST endpoints (`/api/predict`, `/api/health`, `/api/research/*`, `/docs`) are active.")
+    gr.Markdown("# ⚛️ Quantum Text Security API Backend")
+    gr.Markdown("✅ **FastAPI Backend is Active & Healthy**")
+    gr.Markdown("All REST API endpoints (`/api/predict`, `/api/health`, `/api/research/*`, `/docs`) are live.")
     
     with gr.Row():
-        inp = gr.Textbox(label="System Status Check", value="Quantum Text Security Pipeline")
-        out = gr.Textbox(label="Hardware State")
-    
-    btn = gr.Button("Verify ZeroGPU Hardware")
-    btn.click(fn=zero_gpu_inference, inputs=inp, outputs=out)
+        test_input = gr.Textbox(label="Test Input", value="Subject: Urgent Verification Required")
+        test_status = gr.Textbox(label="Backend State", value="API Active")
 
-# Gradio ASGI entrypoint for Hugging Face Spaces
+# Mount FastAPI onto Gradio
 app = gr.mount_gradio_app(fastapi_app, demo, path="/")
+
+if __name__ == "__main__":
+    demo.launch(server_name="0.0.0.0", server_port=7860)
