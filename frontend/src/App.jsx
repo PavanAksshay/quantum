@@ -119,14 +119,19 @@ export default function App() {
   // Fetch table content on select with static fallback support
   useEffect(() => {
     if (!selectedTableId) return;
-    if (DEFAULT_TABLES_CONTENT[selectedTableId]) {
-      setTableContent(DEFAULT_TABLES_CONTENT[selectedTableId]);
-    }
+    const fallback = DEFAULT_TABLES_CONTENT[selectedTableId] || DEFAULT_TABLES_CONTENT.table_3;
+    setTableContent(fallback);
+    
     setIsLoadingTable(true);
     fetch(`${API_BASE}/api/research/tables/${selectedTableId}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(data => {
-        if (data && typeof data === 'object') setTableContent(data);
+        if (data && Array.isArray(data.columns) && data.columns.length > 0 && Array.isArray(data.rows) && data.rows.length > 0) {
+          setTableContent(data);
+        }
         setIsLoadingTable(false);
       })
       .catch(() => {
@@ -1080,7 +1085,10 @@ export default function App() {
 
         {/* VIEW 8: EVIDENCE TABLES */}
         {activeTab === 'tables' && (() => {
-          const activeTable = tableContent || DEFAULT_TABLES_CONTENT[selectedTableId] || DEFAULT_TABLES_CONTENT.table_3;
+          const fallbackTable = DEFAULT_TABLES_CONTENT[selectedTableId] || DEFAULT_TABLES_CONTENT.table_3;
+          const activeTable = (tableContent && Array.isArray(tableContent.columns) && Array.isArray(tableContent.rows) && tableContent.rows.length > 0) 
+            ? tableContent 
+            : fallbackTable;
           const columns = activeTable?.columns || [];
           const rows = activeTable?.rows || [];
 
@@ -1104,7 +1112,12 @@ export default function App() {
                     {(tablesList || DEFAULT_TABLES_LIST).map((t) => (
                       <button
                         key={t.id}
-                        onClick={() => setSelectedTableId(t.id)}
+                        onClick={() => {
+                          setSelectedTableId(t.id);
+                          if (DEFAULT_TABLES_CONTENT[t.id]) {
+                            setTableContent(DEFAULT_TABLES_CONTENT[t.id]);
+                          }
+                        }}
                         style={{
                           padding: '8px 14px',
                           borderRadius: '8px',
@@ -1144,11 +1157,16 @@ export default function App() {
                       <tbody>
                         {rows.map((row, rIdx) => (
                           <tr key={rIdx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                            {columns.map((col, cIdx) => (
-                              <td key={cIdx} style={{ padding: '12px 14px', color: '#1e293b' }}>
-                                {typeof row[col] === 'number' ? row[col].toFixed(4) : (row[col] ?? '—')}
-                              </td>
-                            ))}
+                            {columns.map((col, cIdx) => {
+                              const val = (row && typeof row === 'object') 
+                                ? (row[col] !== undefined ? row[col] : (Array.isArray(row) ? row[cIdx] : '—')) 
+                                : '—';
+                              return (
+                                <td key={cIdx} style={{ padding: '12px 14px', color: '#1e293b' }}>
+                                  {typeof val === 'number' ? val.toFixed(4) : (val ?? '—')}
+                                </td>
+                              );
+                            })}
                           </tr>
                         ))}
                       </tbody>
