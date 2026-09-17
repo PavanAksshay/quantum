@@ -9,7 +9,10 @@ export const DEFAULT_REPRESENTATIONS = [
     canonical_status: "CANONICAL",
     target_dim: 8,
     original_dimension: 50000,
-    description: "50,000 max features, sublinear term-frequency scaling, unigram+bigram, TruncatedSVD to 8D."
+    description: "50,000 max features, sublinear term-frequency scaling, unigram+bigram, TruncatedSVD to 8D.",
+    is_sparse: true,
+    is_canonical: true,
+    status: "READY"
   },
   {
     id: "minilm",
@@ -18,7 +21,10 @@ export const DEFAULT_REPRESENTATIONS = [
     canonical_status: "EXPLORATORY",
     target_dim: 8,
     original_dimension: 384,
-    description: "All-MiniLM-L6-v2 sentence embeddings projected to 8D via TruncatedSVD."
+    description: "All-MiniLM-L6-v2 sentence embeddings projected to 8D via TruncatedSVD.",
+    is_sparse: false,
+    is_canonical: false,
+    status: "READY"
   },
   {
     id: "roberta",
@@ -27,7 +33,10 @@ export const DEFAULT_REPRESENTATIONS = [
     canonical_status: "CANONICAL_ABLATION",
     target_dim: 8,
     original_dimension: 768,
-    description: "RoBERTa-base mean-pooled embeddings projected to 8D via TruncatedSVD."
+    description: "RoBERTa-base mean-pooled embeddings projected to 8D via TruncatedSVD.",
+    is_sparse: false,
+    is_canonical: true,
+    status: "READY"
   },
   {
     id: "mpnet",
@@ -36,7 +45,10 @@ export const DEFAULT_REPRESENTATIONS = [
     canonical_status: "EXPLORATORY",
     target_dim: 8,
     original_dimension: 768,
-    description: "All-MPNet-base-v2 sentence embeddings projected to 8D via TruncatedSVD."
+    description: "All-MPNet-base-v2 sentence embeddings projected to 8D via TruncatedSVD.",
+    is_sparse: false,
+    is_canonical: false,
+    status: "READY"
   }
 ];
 
@@ -3318,3 +3330,3062 @@ export function simulateClientInference({ text, subject, body, representation = 
     total_latency_ms: +(dimension * 3.8 + 2.5).toFixed(2)
   };
 }
+
+
+
+export const DEFAULT_REPRESENTATIONS_COMPARISON_MATRIX = [
+  {
+    representation_id: "tfidf",
+    name: "Canonical TF-IDF + TruncatedSVD",
+    feature_type: "Lexical N-Gram (Sparse)",
+    type: "Lexical N-Gram (Sparse)",
+    original_dimension: 50000,
+    original_dim: 50000,
+    projected_dim: 8,
+    quantum_f1: 0.8754,
+    rbf_f1: 0.8709,
+    linear_svm_f1: 0.8445,
+    linear_f1: 0.8445,
+    delta_f1: "+0.0046",
+    pr_auc: 0.9372,
+    roc_auc: 0.9515,
+    canonical_status: "CANONICAL",
+    status: "CANONICAL",
+    evaluated: true
+  },
+  {
+    representation_id: "roberta",
+    name: "Dense RoBERTa-base",
+    feature_type: "Transformer Contextual (Dense)",
+    type: "Transformer Contextual (Dense)",
+    original_dimension: 768,
+    original_dim: 768,
+    projected_dim: 8,
+    quantum_f1: 0.9601,
+    rbf_f1: 0.9896,
+    linear_svm_f1: 0.9680,
+    linear_f1: 0.9680,
+    delta_f1: "-0.0295",
+    pr_auc: 0.9850,
+    roc_auc: 0.9820,
+    canonical_status: "CANONICAL_ABLATION",
+    status: "CANONICAL_ABLATION",
+    evaluated: true
+  },
+  {
+    representation_id: "minilm",
+    name: "MiniLM-L6 Sentence Transformer",
+    feature_type: "Sentence Transformer (Dense)",
+    type: "Sentence Transformer (Dense)",
+    original_dimension: 384,
+    original_dim: 384,
+    projected_dim: 8,
+    quantum_f1: 0.7707,
+    rbf_f1: 0.7930,
+    linear_svm_f1: 0.7620,
+    linear_f1: 0.7620,
+    delta_f1: "-0.0223",
+    pr_auc: 0.8920,
+    roc_auc: 0.9010,
+    canonical_status: "EXPLORATORY",
+    status: "EXPLORATORY",
+    evaluated: true
+  },
+  {
+    representation_id: "mpnet",
+    name: "MPNet-base Sentence Transformer",
+    feature_type: "Sentence Transformer (Dense)",
+    type: "Sentence Transformer (Dense)",
+    original_dimension: 768,
+    original_dim: 768,
+    projected_dim: 8,
+    quantum_f1: 0.3756,
+    rbf_f1: 0.9045,
+    linear_svm_f1: 0.8870,
+    linear_f1: 0.8870,
+    delta_f1: "-0.5288",
+    pr_auc: 0.4210,
+    roc_auc: 0.5120,
+    canonical_status: "EXPLORATORY",
+    status: "EXPLORATORY",
+    evaluated: true
+  }
+];
+
+export const DEFAULT_REPRESENTATION_GEOMETRY = {
+  tfidf: {
+    representation_id: "tfidf",
+    representation_name: "Canonical TF-IDF + TruncatedSVD (8D)",
+    dispersion_entropy_bits: 0.9421,
+    kernel_diversity: 0.4120,
+    target_label_alignment: 0.0402,
+    target_label_alignment_rbf: 0.0773,
+    alignment_deficit_pct: "-48.0%",
+    gram_pearson_r: 0.5985,
+    quantum_f1: 0.8754,
+    rbf_f1: 0.8709,
+    delta_f1: "+0.0046",
+    canonical_status: "CANONICAL",
+    status: "CANONICAL",
+    evaluated: true,
+    notes: "Moderate Gram matrix correlation with classical RBF (r ≈ 0.60). Inverse relation between single-state entropy and pairwise kernel diversity."
+  },
+  roberta: {
+    representation_id: "roberta",
+    representation_name: "Dense RoBERTa-base (8D)",
+    dispersion_entropy_bits: 0.8650,
+    kernel_diversity: 0.4890,
+    target_label_alignment: 0.0220,
+    target_label_alignment_rbf: 0.0603,
+    alignment_deficit_pct: "-63.5%",
+    gram_pearson_r: 0.5420,
+    quantum_f1: 0.9601,
+    rbf_f1: 0.9896,
+    delta_f1: "-0.0295",
+    canonical_status: "CANONICAL_ABLATION",
+    status: "CANONICAL_ABLATION",
+    evaluated: true,
+    notes: "Classical RBF achieves superior continuous boundary exploitation. Target label alignment reveals -63.5% quantum deficit."
+  },
+  minilm: {
+    representation_id: "minilm",
+    representation_name: "MiniLM-L6 Contextual (8D)",
+    dispersion_entropy_bits: 0.7244,
+    kernel_diversity: 0.3510,
+    target_label_alignment: 0.0195,
+    target_label_alignment_rbf: 0.0512,
+    alignment_deficit_pct: "-61.9%",
+    gram_pearson_r: 0.4820,
+    quantum_f1: 0.7707,
+    rbf_f1: 0.7930,
+    delta_f1: "-0.0223",
+    canonical_status: "EXPLORATORY",
+    status: "EXPLORATORY",
+    evaluated: true,
+    notes: "Initial 3-seed positive margin (+1.14 pp) was resolved upon 10-seed paired replication to a -2.23 pp deficit (p > 0.05)."
+  },
+  mpnet: {
+    representation_id: "mpnet",
+    representation_name: "MPNet-base Contextual (8D)",
+    dispersion_entropy_bits: 0.7101,
+    kernel_diversity: 0.1680,
+    target_label_alignment: 0.0084,
+    target_label_alignment_rbf: 0.0620,
+    alignment_deficit_pct: "-86.5%",
+    gram_pearson_r: 0.3122,
+    quantum_f1: 0.3756,
+    rbf_f1: 0.9045,
+    delta_f1: "-0.5288",
+    canonical_status: "EXPLORATORY",
+    status: "EXPLORATORY",
+    evaluated: true,
+    notes: "Catastrophic ranking reversal (-52.88 pp) caused by contrastive sentence embedding metric collapse under cyclic Pauli-Z phase wrapping."
+  }
+};
+
+export const DEFAULT_EMBEDDING_SAMPLES = {
+  "tfidf": {
+    "representation_id": "tfidf",
+    "projection_method": "2D TruncatedSVD on TF-IDF sparse lexical space",
+    "points": [
+      {
+        "x": -0.382,
+        "y": -0.288,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.374,
+        "y": -0.096,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.378,
+        "y": -0.579,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.277,
+        "y": -0.309,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.398,
+        "y": -0.225,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.299,
+        "y": 0.006,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.206,
+        "y": -0.226,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.512,
+        "y": -0.473,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.296,
+        "y": 0.038,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.341,
+        "y": -0.273,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.233,
+        "y": -0.57,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.419,
+        "y": -0.142,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.158,
+        "y": -0.303,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.267,
+        "y": -0.195,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.178,
+        "y": -0.495,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.225,
+        "y": -0.583,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.926,
+        "y": -0.384,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.551,
+        "y": -0.057,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.204,
+        "y": -0.518,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.164,
+        "y": -0.47,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.369,
+        "y": -0.315,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.325,
+        "y": -0.07,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.21,
+        "y": -0.173,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.207,
+        "y": -0.145,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.488,
+        "y": -0.408,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.453,
+        "y": -0.14,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.405,
+        "y": 0.264,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.53,
+        "y": -0.492,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.181,
+        "y": 0.063,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.239,
+        "y": -0.066,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.036,
+        "y": -0.271,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.663,
+        "y": -0.367,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.14,
+        "y": -0.568,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.343,
+        "y": -0.194,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.419,
+        "y": -0.091,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.222,
+        "y": 0.261,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.214,
+        "y": -0.384,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.474,
+        "y": -0.433,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.14,
+        "y": -0.375,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.365,
+        "y": -0.085,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.509,
+        "y": -0.315,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.755,
+        "y": -0.488,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.475,
+        "y": -0.159,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.087,
+        "y": -0.254,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.292,
+        "y": -0.213,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.111,
+        "y": -0.053,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.29,
+        "y": -0.472,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.151,
+        "y": -0.166,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.08,
+        "y": -0.257,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": 0.08,
+        "y": -0.329,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": 0.0,
+        "y": -0.225,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.464,
+        "y": -0.498,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.383,
+        "y": 0.063,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.17,
+        "y": -0.098,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.873,
+        "y": -0.094,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.228,
+        "y": -0.371,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.488,
+        "y": -0.251,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": 0.029,
+        "y": -0.482,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.444,
+        "y": 0.05,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.448,
+        "y": -0.33,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": 0.374,
+        "y": -0.06,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.405,
+        "y": -0.052,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.571,
+        "y": 0.251,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.921,
+        "y": 0.32,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.691,
+        "y": -0.076,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.319,
+        "y": 0.331,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.786,
+        "y": -0.17,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.598,
+        "y": 0.398,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.733,
+        "y": 0.428,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.363,
+        "y": 0.12,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.038,
+        "y": 0.299,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.302,
+        "y": 0.755,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.197,
+        "y": 0.33,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": -0.042,
+        "y": 0.151,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.415,
+        "y": 0.456,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.712,
+        "y": 0.239,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.071,
+        "y": 0.364,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.479,
+        "y": 0.373,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.175,
+        "y": 0.533,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.372,
+        "y": 0.425,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.669,
+        "y": 0.402,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.422,
+        "y": 0.788,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.411,
+        "y": 0.176,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.378,
+        "y": 0.621,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.38,
+        "y": 0.38,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.649,
+        "y": 0.122,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": -0.082,
+        "y": 0.325,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.407,
+        "y": 0.098,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.568,
+        "y": 0.402,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.101,
+        "y": 0.38,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.301,
+        "y": -0.121,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.463,
+        "y": 0.239,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.164,
+        "y": 0.381,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.472,
+        "y": 0.106,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.45,
+        "y": 0.504,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.172,
+        "y": 0.345,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.351,
+        "y": 0.817,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": -0.116,
+        "y": 0.424,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.273,
+        "y": 0.225,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.825,
+        "y": 0.248,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.91,
+        "y": 0.139,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.438,
+        "y": 0.127,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.177,
+        "y": 0.266,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.279,
+        "y": 0.301,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": -0.176,
+        "y": 0.751,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.308,
+        "y": 0.686,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.098,
+        "y": 0.323,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 1.141,
+        "y": 0.033,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": -0.024,
+        "y": 0.113,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.468,
+        "y": 0.423,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.673,
+        "y": 0.186,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": -0.051,
+        "y": 0.141,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.66,
+        "y": 0.366,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": -0.139,
+        "y": 0.241,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.7,
+        "y": 0.782,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.49,
+        "y": 0.327,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.04,
+        "y": 0.039,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.362,
+        "y": 0.376,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.495,
+        "y": 0.13,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.062,
+        "y": 0.056,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      }
+    ]
+  },
+  "roberta": {
+    "representation_id": "roberta",
+    "projection_method": "2D TruncatedSVD on RoBERTa-base 768D contextual embeddings",
+    "points": [
+      {
+        "x": -0.758,
+        "y": -0.284,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.966,
+        "y": -0.46,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.469,
+        "y": -0.126,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.537,
+        "y": -0.22,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.622,
+        "y": -0.534,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.671,
+        "y": -0.125,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.371,
+        "y": -0.312,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": 0.049,
+        "y": -0.406,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.438,
+        "y": -0.345,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.59,
+        "y": 0.017,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.279,
+        "y": -0.652,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.622,
+        "y": -0.323,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.409,
+        "y": -0.643,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.956,
+        "y": -0.743,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.563,
+        "y": -0.419,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.488,
+        "y": -0.539,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.77,
+        "y": -0.764,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.491,
+        "y": -0.333,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.371,
+        "y": -0.258,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.584,
+        "y": -0.157,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.575,
+        "y": -0.519,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.644,
+        "y": -0.505,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.94,
+        "y": -0.372,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.505,
+        "y": -0.465,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.678,
+        "y": -0.333,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.241,
+        "y": -0.393,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.641,
+        "y": -0.506,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.563,
+        "y": -0.628,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.573,
+        "y": -0.389,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.218,
+        "y": -0.23,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.364,
+        "y": -0.528,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.429,
+        "y": -0.605,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.494,
+        "y": -0.325,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.688,
+        "y": -0.04,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.448,
+        "y": -0.742,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.45,
+        "y": -0.473,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.55,
+        "y": -0.316,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.48,
+        "y": -0.767,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.758,
+        "y": -0.261,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.316,
+        "y": -0.057,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.225,
+        "y": -0.77,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.411,
+        "y": -0.745,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.26,
+        "y": -0.354,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.755,
+        "y": -0.038,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.434,
+        "y": -0.74,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.497,
+        "y": -0.532,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.53,
+        "y": -0.484,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.303,
+        "y": -0.656,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.493,
+        "y": -0.073,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.699,
+        "y": -0.362,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.514,
+        "y": -0.524,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.433,
+        "y": -0.383,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.72,
+        "y": -0.083,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.408,
+        "y": -0.43,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.665,
+        "y": -0.541,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.328,
+        "y": -0.426,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.467,
+        "y": -0.433,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.439,
+        "y": -0.421,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.413,
+        "y": -0.433,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.401,
+        "y": -0.279,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": 0.527,
+        "y": 0.228,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.362,
+        "y": 0.252,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.353,
+        "y": 0.573,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.541,
+        "y": 0.714,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 1.006,
+        "y": 0.405,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.24,
+        "y": 0.324,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.535,
+        "y": 0.102,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.5,
+        "y": 0.457,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.458,
+        "y": 0.246,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.398,
+        "y": 0.757,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.518,
+        "y": 0.234,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.475,
+        "y": 0.591,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.413,
+        "y": 0.496,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.696,
+        "y": 0.55,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.83,
+        "y": 0.29,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.777,
+        "y": 0.241,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.471,
+        "y": 0.639,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.714,
+        "y": 0.4,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.312,
+        "y": 0.512,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.424,
+        "y": 0.215,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.42,
+        "y": 0.449,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.126,
+        "y": 0.472,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.585,
+        "y": 0.283,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.757,
+        "y": 0.522,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.429,
+        "y": 0.266,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.689,
+        "y": 0.097,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.483,
+        "y": 0.274,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.564,
+        "y": 0.442,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.557,
+        "y": 0.627,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.596,
+        "y": 0.337,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.308,
+        "y": 0.544,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.656,
+        "y": 0.69,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.401,
+        "y": 0.405,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.538,
+        "y": 0.382,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.552,
+        "y": 0.057,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.715,
+        "y": 0.531,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.776,
+        "y": 0.85,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.486,
+        "y": 0.393,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.552,
+        "y": 0.788,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.204,
+        "y": 0.497,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.256,
+        "y": -0.116,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.146,
+        "y": 0.124,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.764,
+        "y": 0.226,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.505,
+        "y": 0.167,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.672,
+        "y": 0.18,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.814,
+        "y": 0.201,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.397,
+        "y": 0.425,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.555,
+        "y": 0.685,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.574,
+        "y": 0.158,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.438,
+        "y": 0.285,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.695,
+        "y": 0.477,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.526,
+        "y": 0.574,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.444,
+        "y": 0.373,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.586,
+        "y": 0.706,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.53,
+        "y": 0.33,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.341,
+        "y": 0.537,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.432,
+        "y": 0.469,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.17,
+        "y": 0.609,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.284,
+        "y": 0.245,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.762,
+        "y": 0.133,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      }
+    ]
+  },
+  "minilm": {
+    "representation_id": "minilm",
+    "projection_method": "2D TruncatedSVD on all-MiniLM-L6-v2 384D sentence embeddings",
+    "points": [
+      {
+        "x": -0.436,
+        "y": -0.285,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.62,
+        "y": -0.031,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.12,
+        "y": -0.694,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.71,
+        "y": -0.138,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.681,
+        "y": -0.378,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.394,
+        "y": -0.162,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.465,
+        "y": -0.281,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.575,
+        "y": -0.042,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.519,
+        "y": -0.232,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.522,
+        "y": -0.279,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.454,
+        "y": -0.332,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.623,
+        "y": -0.141,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.137,
+        "y": -0.251,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.274,
+        "y": -0.132,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.234,
+        "y": -0.239,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.378,
+        "y": -0.127,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.406,
+        "y": -0.495,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.415,
+        "y": -0.678,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.421,
+        "y": -0.217,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.173,
+        "y": -0.27,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.234,
+        "y": -0.3,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.625,
+        "y": -0.582,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.614,
+        "y": -0.573,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.293,
+        "y": -0.342,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.306,
+        "y": -0.285,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.211,
+        "y": -0.088,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.549,
+        "y": -0.355,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.527,
+        "y": -0.624,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.285,
+        "y": -0.062,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.421,
+        "y": -0.399,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.202,
+        "y": -0.769,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.385,
+        "y": -0.271,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.534,
+        "y": -0.022,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.226,
+        "y": -0.352,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.437,
+        "y": -0.378,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.522,
+        "y": -0.562,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.144,
+        "y": -0.094,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.26,
+        "y": -0.519,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.004,
+        "y": 0.096,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.382,
+        "y": -0.481,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.593,
+        "y": -0.216,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.603,
+        "y": -0.307,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.202,
+        "y": -0.601,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.019,
+        "y": 0.013,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.667,
+        "y": -0.583,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.477,
+        "y": -0.506,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.473,
+        "y": -0.816,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.466,
+        "y": 0.061,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.643,
+        "y": -0.355,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.718,
+        "y": -0.172,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.465,
+        "y": 0.088,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.379,
+        "y": -0.374,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.31,
+        "y": -0.401,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.688,
+        "y": -0.24,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.455,
+        "y": -0.267,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.345,
+        "y": -0.402,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.336,
+        "y": 0.048,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.642,
+        "y": 0.047,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.469,
+        "y": -0.453,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": 0.065,
+        "y": -0.269,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": 0.721,
+        "y": 0.48,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.05,
+        "y": 0.327,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.304,
+        "y": 0.005,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.03,
+        "y": 0.323,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.55,
+        "y": 0.386,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.353,
+        "y": 0.124,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.203,
+        "y": 0.178,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.193,
+        "y": 0.255,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.415,
+        "y": 0.103,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.369,
+        "y": 0.133,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.419,
+        "y": 0.412,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.459,
+        "y": 0.404,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.057,
+        "y": 0.217,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.481,
+        "y": 0.441,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.068,
+        "y": 0.335,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.685,
+        "y": 0.261,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.399,
+        "y": 0.399,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.474,
+        "y": 0.448,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.436,
+        "y": 0.334,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.248,
+        "y": 0.263,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.696,
+        "y": 0.255,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.383,
+        "y": 0.192,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.593,
+        "y": 0.112,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.62,
+        "y": 0.094,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.187,
+        "y": 0.345,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.449,
+        "y": 0.365,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.654,
+        "y": 0.209,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.517,
+        "y": 0.1,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.697,
+        "y": 0.439,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.538,
+        "y": 0.341,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.247,
+        "y": 0.228,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.53,
+        "y": 0.296,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.447,
+        "y": 0.001,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.46,
+        "y": 0.148,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.182,
+        "y": 0.266,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.012,
+        "y": 0.454,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.607,
+        "y": 0.288,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.201,
+        "y": 0.092,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.387,
+        "y": -0.233,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.46,
+        "y": 0.446,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.351,
+        "y": 0.191,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.46,
+        "y": 0.377,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.661,
+        "y": 0.304,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.268,
+        "y": 0.199,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.46,
+        "y": 0.642,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.35,
+        "y": 0.068,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.229,
+        "y": -0.161,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.493,
+        "y": 0.001,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.149,
+        "y": -0.135,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.174,
+        "y": 0.425,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.132,
+        "y": -0.085,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.459,
+        "y": 0.225,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.515,
+        "y": 0.463,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.418,
+        "y": 0.014,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.393,
+        "y": 0.41,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.292,
+        "y": -0.016,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.663,
+        "y": 0.209,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.33,
+        "y": 0.304,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.647,
+        "y": 0.358,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.347,
+        "y": 0.45,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      }
+    ]
+  },
+  "mpnet": {
+    "representation_id": "mpnet",
+    "projection_method": "2D TruncatedSVD on all-mpnet-base-v2 768D contrastive embeddings",
+    "points": [
+      {
+        "x": -0.342,
+        "y": -0.333,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.519,
+        "y": -0.635,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.15,
+        "y": -0.644,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.645,
+        "y": -0.584,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.405,
+        "y": -0.45,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.771,
+        "y": -0.468,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.534,
+        "y": -0.538,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.746,
+        "y": -0.587,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.652,
+        "y": -0.497,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.662,
+        "y": -0.412,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.714,
+        "y": -0.708,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.689,
+        "y": -0.338,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.669,
+        "y": -0.219,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.541,
+        "y": -0.64,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.7,
+        "y": -0.471,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.741,
+        "y": -0.215,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.719,
+        "y": -0.418,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.425,
+        "y": -0.513,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.72,
+        "y": -0.533,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.557,
+        "y": -0.395,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.593,
+        "y": -0.668,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.595,
+        "y": -0.581,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.862,
+        "y": -0.584,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.772,
+        "y": -0.43,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.367,
+        "y": -0.277,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.669,
+        "y": -0.556,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.517,
+        "y": -0.373,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.65,
+        "y": -0.517,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.335,
+        "y": -0.513,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.658,
+        "y": -0.486,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.53,
+        "y": -0.623,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.63,
+        "y": -0.64,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.633,
+        "y": -0.275,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.511,
+        "y": -0.511,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.712,
+        "y": -0.537,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.474,
+        "y": -0.567,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.426,
+        "y": -0.665,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.635,
+        "y": -0.291,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.841,
+        "y": -0.357,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.822,
+        "y": -0.511,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.621,
+        "y": -0.401,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.979,
+        "y": -0.73,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.668,
+        "y": -0.496,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.707,
+        "y": -0.527,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.742,
+        "y": -0.548,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.702,
+        "y": -0.471,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.53,
+        "y": -0.328,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.679,
+        "y": -0.538,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.594,
+        "y": -0.535,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.606,
+        "y": -0.687,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.555,
+        "y": -0.61,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.715,
+        "y": -0.691,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.461,
+        "y": -0.517,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.462,
+        "y": -0.467,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.804,
+        "y": -0.63,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.509,
+        "y": -0.592,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.731,
+        "y": -0.522,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.621,
+        "y": -0.621,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.639,
+        "y": -0.557,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": -0.911,
+        "y": -0.44,
+        "label": 0,
+        "text": "Legitimate / Ham"
+      },
+      {
+        "x": 0.486,
+        "y": 0.683,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.439,
+        "y": 0.279,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.766,
+        "y": 0.278,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.511,
+        "y": 0.584,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.554,
+        "y": 0.268,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.626,
+        "y": 0.473,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.78,
+        "y": 0.582,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 1.025,
+        "y": 0.27,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.597,
+        "y": 0.351,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.762,
+        "y": 0.615,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.706,
+        "y": 0.391,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.496,
+        "y": 0.216,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.839,
+        "y": 0.571,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.563,
+        "y": 0.631,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.705,
+        "y": 0.637,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.373,
+        "y": 0.4,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.627,
+        "y": 0.55,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.734,
+        "y": 0.359,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.618,
+        "y": 0.809,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.697,
+        "y": 0.622,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.597,
+        "y": 0.607,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.853,
+        "y": 0.515,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.771,
+        "y": 0.377,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.683,
+        "y": 0.627,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.495,
+        "y": 0.654,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.505,
+        "y": 0.387,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.6,
+        "y": 0.77,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.643,
+        "y": 0.631,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.498,
+        "y": 0.511,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.435,
+        "y": 0.42,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.717,
+        "y": 0.495,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.803,
+        "y": 0.472,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.572,
+        "y": 0.679,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.509,
+        "y": 0.287,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.782,
+        "y": 0.558,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.297,
+        "y": 0.506,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.543,
+        "y": 0.744,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.498,
+        "y": 0.419,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.473,
+        "y": 0.352,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.502,
+        "y": 0.299,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.456,
+        "y": 0.275,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.39,
+        "y": 0.282,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.527,
+        "y": 0.404,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.428,
+        "y": 0.567,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.593,
+        "y": 0.44,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.535,
+        "y": 0.723,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.634,
+        "y": 0.567,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.238,
+        "y": 0.408,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.296,
+        "y": 0.44,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.652,
+        "y": 0.406,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.673,
+        "y": 0.357,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.681,
+        "y": 0.282,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.563,
+        "y": 0.559,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.675,
+        "y": 0.482,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.872,
+        "y": 0.442,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.537,
+        "y": 0.114,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.848,
+        "y": 0.448,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.435,
+        "y": 0.685,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.773,
+        "y": 0.515,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      },
+      {
+        "x": 0.399,
+        "y": 0.559,
+        "label": 1,
+        "text": "Phishing / Malicious"
+      }
+    ]
+  }
+};
