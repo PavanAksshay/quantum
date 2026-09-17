@@ -13,9 +13,10 @@ import TimingScopeBadge from './TimingScopeBadge';
 
 import { DEFAULT_EXP41_COMPARISON, DEFAULT_EXP41_GEOMETRY, DEFAULT_EXP41_DATA } from '../data/researchFallbackData';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000';
+const DEFAULT_API = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000';
 
-export default function Exp41ScreeningView() {
+export default function Exp41ScreeningView({ apiBaseUrl = null }) {
+  const API_BASE = apiBaseUrl || DEFAULT_API;
   const [expData, setExpData] = useState(DEFAULT_EXP41_DATA);
   const [comparisonData, setComparisonData] = useState(DEFAULT_EXP41_COMPARISON);
   const [geometryData, setGeometryData] = useState(DEFAULT_EXP41_GEOMETRY);
@@ -40,7 +41,7 @@ export default function Exp41ScreeningView() {
       if (Array.isArray(geom) && geom.length > 0) setGeometryData(geom);
       if (stat && typeof stat === 'object') setStatusData(stat);
     }).catch(() => {});
-  }, []);
+  }, [API_BASE]);
 
   // Filtered raw records
   const rawResults = (expData?.screening_results && expData.screening_results.length > 0) 

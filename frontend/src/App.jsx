@@ -34,6 +34,46 @@ export default function App() {
   const [apiBaseUrl, setApiBaseUrl] = useState(() => localStorage.getItem('quantum_api_base') || DEFAULT_API);
   const [showApiModal, setShowApiModal] = useState(false);
   const [tempApiUrl, setTempApiUrl] = useState(apiBaseUrl);
+  const [pingStatus, setPingStatus] = useState(null);
+  const [isPinging, setIsPinging] = useState(false);
+
+  // Handle connection testing
+  const handleTestConnection = async (urlToTest) => {
+    setIsPinging(true);
+    setPingStatus(null);
+    const start = performance.now();
+    try {
+      const cleanUrl = urlToTest.trim().replace(/\/+$/, '');
+      const res = await fetch(`${cleanUrl}/api/health`);
+      const latency = Math.round(performance.now() - start);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setPingStatus({ 
+        ok: true, 
+        latency, 
+        data, 
+        message: `Connected successfully in ${latency}ms (${data.engine || 'Online'})` 
+      });
+    } catch (err) {
+      const latency = Math.round(performance.now() - start);
+      setPingStatus({ 
+        ok: false, 
+        latency, 
+        error: err.message, 
+        message: `Could not reach ${urlToTest}. Note: If your Render backend was idle, it may take 30-50s to wake up from cold start.` 
+      });
+    } finally {
+      setIsPinging(false);
+    }
+  };
+
+  const handleSaveApiUrl = () => {
+    const cleanUrl = tempApiUrl.trim().replace(/\/+$/, '');
+    setApiBaseUrl(cleanUrl);
+    localStorage.setItem('quantum_api_base', cleanUrl);
+    setShowApiModal(false);
+    setPingStatus(null);
+  };
 
   // Prediction State
   const [inputMode, setInputMode] = useState('single'); // 'single' | 'email'
@@ -293,6 +333,41 @@ export default function App() {
               onClick={() => setActiveTab('tables')}
             >
               <Database size={16} /> Evidence Tables
+            </button>
+
+            {/* Backend Server Status & Config Button */}
+            <button
+              onClick={() => {
+                setTempApiUrl(apiBaseUrl);
+                setShowApiModal(true);
+                setPingStatus(null);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                marginLeft: '8px',
+                borderRadius: '8px',
+                border: `1px solid ${healthStatus?.status === 'online' ? '#86efac' : '#fed7aa'}`,
+                background: healthStatus?.status === 'online' ? '#f0fdf4' : '#fff7ed',
+                color: healthStatus?.status === 'online' ? '#166534' : '#9a3412',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              title="Click to configure Render backend URL"
+            >
+              <span style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: healthStatus?.status === 'online' ? '#22c55e' : '#f97316'
+              }} />
+              <Server size={14} />
+              <span>{healthStatus?.status === 'online' ? 'Backend Live' : 'Backend Config'}</span>
+              <Settings size={12} style={{ opacity: 0.7 }} />
             </button>
           </nav>
         </div>
@@ -728,6 +803,7 @@ export default function App() {
           <RepresentationLab 
             currentRepId={selectedRepId} 
             onSelectRepresentation={(id) => setSelectedRepId(id)} 
+            apiBaseUrl={API_BASE}
           />
         )}
 
@@ -1183,6 +1259,190 @@ export default function App() {
         })()}
 
       </main>
+
+      {/* Backend API Configuration Modal */}
+      {showApiModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '20px'
+        }}>
+          <div className="clean-card" style={{
+            maxWidth: '560px',
+            width: '100%',
+            padding: '28px',
+            borderRadius: '16px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+            background: '#ffffff'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Server size={20} color="#2563eb" />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                    Backend API Connection
+                  </h3>
+                  <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
+                    Configure the live Render Python backend endpoint
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowApiModal(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '4px' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ marginBottom: '18px' }}>
+              <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                Backend Service URL (Render / Cloud / Local)
+              </label>
+              <input
+                type="text"
+                value={tempApiUrl}
+                onChange={(e) => setTempApiUrl(e.target.value)}
+                placeholder="https://quantum-backend-xxxx.onrender.com"
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  fontFamily: 'monospace'
+                }}
+              />
+              <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setTempApiUrl('http://127.0.0.1:8000')}
+                  style={{
+                    fontSize: '0.78rem',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    border: '1px solid #e2e8f0',
+                    background: '#f8fafc',
+                    color: '#475569',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Localhost (127.0.0.1:8000)
+                </button>
+              </div>
+            </div>
+
+            {/* Test Ping Status */}
+            {pingStatus && (
+              <div style={{
+                marginBottom: '18px',
+                padding: '12px 16px',
+                borderRadius: '8px',
+                background: pingStatus.ok ? '#f0fdf4' : '#fff7ed',
+                border: `1px solid ${pingStatus.ok ? '#bbf7d0' : '#fed7aa'}`,
+                color: pingStatus.ok ? '#166534' : '#9a3412',
+                fontSize: '0.88rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, marginBottom: '4px' }}>
+                  {pingStatus.ok ? <CheckCircle size={16} color="#16a34a" /> : <AlertTriangle size={16} color="#ea580c" />}
+                  {pingStatus.ok ? 'Connection Verified' : 'Connection Warning'}
+                </div>
+                <div>{pingStatus.message}</div>
+                {pingStatus.ok && pingStatus.data?.engine && (
+                  <div style={{ fontSize: '0.8rem', marginTop: '4px', opacity: 0.85 }}>
+                    Engine: {pingStatus.data.engine}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Explanatory note for Render Free Tier */}
+            <div style={{
+              background: '#f1f5f9',
+              padding: '12px 14px',
+              borderRadius: '8px',
+              fontSize: '0.82rem',
+              color: '#475569',
+              lineHeight: 1.5,
+              marginBottom: '20px'
+            }}>
+              <strong>Render Free Tier Note:</strong> If your Render backend is sleeping due to inactivity, the first ping will wake it up (takes ~30–50 seconds). Once awake, requests execute with sub-second latency.
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => handleTestConnection(tempApiUrl)}
+                disabled={isPinging || !tempApiUrl.trim()}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  color: '#334155',
+                  fontWeight: 600,
+                  fontSize: '0.92rem',
+                  cursor: isPinging ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <RefreshCw size={14} className={isPinging ? 'spin-animation' : ''} />
+                {isPinging ? 'Testing...' : 'Test Connection'}
+              </button>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowApiModal(false)}
+                  style={{
+                    padding: '10px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid #e2e8f0',
+                    background: '#ffffff',
+                    color: '#64748b',
+                    fontWeight: 600,
+                    fontSize: '0.92rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveApiUrl}
+                  disabled={!tempApiUrl.trim()}
+                  style={{
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    fontSize: '0.92rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Save & Connect
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

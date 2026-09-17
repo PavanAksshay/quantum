@@ -13,9 +13,10 @@ import Exp41ScreeningView from './Exp41ScreeningView';
 
 import { DEFAULT_REPRESENTATIONS, DEFAULT_EXP41_COMPARISON } from '../data/researchFallbackData';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000';
+const DEFAULT_API = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000';
 
-export default function RepresentationLab({ onSelectRepresentation, currentRepId = 'tfidf' }) {
+export default function RepresentationLab({ onSelectRepresentation, currentRepId = 'tfidf', apiBaseUrl = null }) {
+  const API_BASE = apiBaseUrl || DEFAULT_API;
   const [subTab, setSubTab] = useState('exp41'); // 'overview' | 'exp41'
   const [representations, setRepresentations] = useState(DEFAULT_REPRESENTATIONS);
   const [selectedRep, setSelectedRep] = useState(currentRepId);
@@ -33,7 +34,7 @@ export default function RepresentationLab({ onSelectRepresentation, currentRepId
       if (Array.isArray(reps) && reps.length > 0) setRepresentations(reps);
       if (Array.isArray(matrix) && matrix.length > 0) setComparisonMatrix(matrix);
     }).catch(() => {});
-  }, []);
+  }, [API_BASE]);
 
   // Fetch geometry and scatter for selected representation
   useEffect(() => {
@@ -47,7 +48,7 @@ export default function RepresentationLab({ onSelectRepresentation, currentRepId
       .then(r => r.json())
       .then(data => setScatterData(data))
       .catch(err => console.error("Error loading embedding sample:", err));
-  }, [selectedRep]);
+  }, [selectedRep, API_BASE]);
 
   const activeRepMeta = representations.find(r => r.id === selectedRep) || representations[0];
 
@@ -97,7 +98,7 @@ export default function RepresentationLab({ onSelectRepresentation, currentRepId
       </div>
 
       {subTab === 'exp41' ? (
-        <Exp41ScreeningView />
+        <Exp41ScreeningView apiBaseUrl={API_BASE} />
       ) : (
         <>
           {/* Header Banner */}
