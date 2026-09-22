@@ -8,8 +8,8 @@ app_file: server.py
 pinned: false
 ---
 
-# ⚛️ When Do Quantum Kernels Help for Text Security?
-### *A Multi-Dataset Evaluation of Representation, Geometry, Generalization, and Computational Cost*
+# ⚛️ Evaluating a Parameter-Free Quantum Fidelity Kernel for Text Security
+### *Under Representation, Geometry, Generalization, and Computational Cost*
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel%20Frontend-blue?style=for-the-badge&logo=vercel)](https://quantum-three-hazel.vercel.app)
 [![API Status](https://img.shields.io/badge/API%20Backend-FastAPI%20%2B%20PyTorch-green?style=for-the-badge&logo=fastapi)](https://quantum-backend.onrender.com/docs)
@@ -20,20 +20,21 @@ pinned: false
 
 ## 🔬 Research at a Glance
 
-This repository contains the complete experimental code, statistical verification pipelines, academic manuscript sources, and an interactive full-stack research platform for evaluating **parameter-free quantum fidelity kernels** against **matched classical radial basis function (RBF) kernels** and **eight classical machine learning baselines** on real-world text security threats (phishing, email fraud, and SMS spam).
+This repository contains the complete experimental code, statistical verification pipelines, academic manuscript sources, and an interactive full-stack research platform for evaluating **parameter-free quantum fidelity kernels** (two-layer cyclic $ZZFeatureMap$) against **matched classical radial basis function (RBF) kernels** and an audited suite of **eight classical machine learning baselines** across three cybersecurity text corpora.
 
 ```
 ====================================================================================================
                                       RESEARCH SPECIFICATION MATRIX
 ====================================================================================================
-Primary Research Question:   Do quantum kernels provide a practical advantage for text security?
-Literature Scope:            28 Peer-Reviewed & Foundational Papers Synthesized and Audited
-Benchmark Corpora (3):       SMS Spam (5.5k), CEAS 2008 Phishing (15k), MeAJOR Multi-Source (108k texts)
-Classifiers Audited (8):     Linear SVM, Classical RBF SVM, Logistic Regression, Multinomial NB,
+Primary Research Question:   Does a parameter-free quantum fidelity kernel provide a practical
+                             advantage for text security classification?
+Benchmark Corpora (3):       SMS Spam (5.5k), CEAS 2008 (39.1k raw / 15k exp), MeAJOR Archive (108.6k)
+Record Accounting:           153,413 Raw -> 153,410 Usable -> 35,572 Controlled Experimental Subsets
+Classifiers Audited (8):     Linear SVM, Matched RBF, Tuned RBF, Logistic Regression, Multinomial NB,
                              Random Forest, XGBoost, Multi-Layer Perceptron (MLP), k-NN
-Quantum Setup:               2-Layer Cyclic ZZFeatureMap on 2–12 Qubits, Statevector Fidelity Kernel
-Statistical Protocol:        10 Canonical Seeds, 10,000 Permutations, 10,000 Bootstrap CIs, BH-FDR
-Equivalence Boundary:        ε = ±0.01 F1 (Pre-registered practical equivalence boundary)
+Quantum Setup:               2-Layer Cyclic ZZFeatureMap on 2–12 Qubits (16D Memory Stress Test)
+Statistical Protocol:        10 Canonical Seeds, 10,000 Permutations, 10,000 Bootstrap CIs, TOST, BH-FDR
+Equivalence Boundary:        ε = ±0.01 F1 (Two One-Sided Tests practical equivalence boundary)
 ====================================================================================================
 ```
 
@@ -42,13 +43,14 @@ Equivalence Boundary:        ε = ±0.01 F1 (Pre-registered practical equivalenc
 ## 📊 Major Scientific Findings
 
 1. **In-Distribution Practical Equivalence ($\varepsilon = \pm 0.01\text{ F1}$)**:
-   - At intermediate dimensions ($8\text{D}$ and $10\text{D}$), the quantum fidelity kernel achieves minor statistically detectable gains ($+0.46\text{ pp}$ at $8\text{D}$, $p = 0.0016$; $+0.57\text{ pp}$ at $10\text{D}$, $p = 0.0052$) that remain strictly within the predefined practical equivalence boundary ($|\Delta| \le 0.01$).
+   - At intermediate dimensions ($8\text{D}$ and $10\text{D}$), the quantum fidelity kernel achieves minor statistically detectable gains ($+0.46\text{ pp}$ at $8\text{D}$, $p = 0.0016$; $+0.57\text{ pp}$ at $10\text{D}$, $p = 0.0052$) that satisfy Two One-Sided Tests (TOST) practical equivalence ($|\Delta| \le 0.01$).
    - At $12\text{D}$, quantum and classical RBF converge to full statistical parity ($+0.14\text{ pp}$, $p = 0.2824$).
+   - Against a validation-tuned classical RBF baseline, the quantum margin narrows to full statistical parity across all dimensions (e.g., $+0.12\text{ pp}$ at $8\text{D}$, $p = 0.1840$).
 
 2. **Representation Primacy & Ranking Inversion**:
    - Upstream feature representation dominates kernel selection by an order of magnitude.
    - On **CEAS 2008**, switching from sparse TF-IDF to dense RoBERTa embeddings reverses the quantum advantage into a classical advantage (net shift: $-3.90\text{ pp}$).
-   - On **SMS Spam**, contrastive sentence embeddings (**all-mpnet-base-v2**) cause a **$-52.88\text{ pp}$ catastrophic quantum collapse** due to phase-wrapping under cyclic Pauli-$Z$ gates.
+   - On **SMS Spam**, contrastive sentence embeddings (**all-mpnet-base-v2**) cause a **$-52.88\text{ pp}$ catastrophic quantum collapse** consistent with destructive phase-wrapping under cyclic Pauli-$Z$ gates.
 
 3. **Cross-Source Domain Transfer Deficit**:
    - Under cross-source domain shift (TREC 2007 $\to$ TREC 2005/2006 holdouts), the quantum kernel suffers greater degradation than matched classical RBF ($\Delta\text{F1} = -0.0233$, $p = 0.0046$, Benjamini–Hochberg FDR $p = 0.0069$).
@@ -83,34 +85,51 @@ Equivalence Boundary:        ε = ±0.01 F1 (Pre-registered practical equivalenc
   $$K_Q(\mathbf{x}, \mathbf{z}) = |\langle \psi(\mathbf{x}) | \psi(\mathbf{z}) \rangle|^2$$
 - **Matched Classical RBF Kernel**:
   $$K_{\text{RBF}}(\mathbf{x}, \mathbf{z}) = \exp\left( -\gamma \|\mathbf{x} - \mathbf{z}\|_2^2 \right), \quad \gamma = \frac{1}{d \cdot \text{Var}(X)}$$
+- **Centered Kernel-Target Alignment (CKA)**:
+  $$\text{CKA}(K, Y) = \frac{\langle H K H, H Y H \rangle_F}{\|H K H\|_F \|H Y H\|_F}, \quad H = I - \frac{1}{N}\mathbf{1}\mathbf{1}^T, \quad Y = \mathbf{y}\mathbf{y}^T$$
 - **Dual Support Vector Classification**:
   $$\max_{\boldsymbol{\alpha}} \sum_{i=1}^N \alpha_i - \frac{1}{2} \sum_{i,j=1}^N \alpha_i \alpha_j y_i y_j K(\mathbf{x}_i, \mathbf{x}_j) \quad \text{s.t.} \quad 0 \le \alpha_i \le C \cdot w_{y_i}, \; \sum_{i=1}^N \alpha_i y_i = 0$$
 
 ---
 
-## 📚 28-Paper Systematic Literature Taxonomy
-
-The experimental benchmark is positioned against **28 referenced foundational, theoretical, and empirical works**:
+## 📈 Complete Classical Baseline Audit (8 Models across 3 Datasets)
 
 ```
-+---------------------------------------------------------------------------------------------------+
-|                                28-PAPER SYSTEMATIC LITERATURE TAXONOMY                            |
-+---------------------------------+---------------------------------+-------------------------------+
-|  A. Theory & Geometry (6)       |  B. QNLP & Text (6)             |  C. Security & Phishing (6)   |
-|  1. Havlíček et al. (Nature 19) |  7. Rahevar et al. (CMES 2026)  | 13. Ammar et al. (MAKE 2026)  |
-|  2. Schuld & Killoran (PRL 19)  |  8. Garg et al. (IEEE TQE 2024) | 14. Guddanti et al. (2026)    |
-|  3. Huang et al. (Nat Comm 21)  |  9. Shukla et al. (Access 2023) | 15. Hridi et al. (QPAIN 2026) |
-|  4. Thanasilp et al. (Nat Comm) | 10. Di Sipio et al. (TQE 2022)  | 16. Shahriyar et al. (2025)   |
-|  5. Kübler et al. (NeurIPS 21)  | 11. Coecke et al. (2020)        | 17. Al-Sarem et al. (2023)    |
-|  6. Glick et al. (npj QI 2022)  | 12. Lorenzo et al. (QST 2023)   | 18. Lu et al. (PR Research 20)|
-+---------------------------------+---------------------------------+-------------------------------+
-|  D. Benchmarking Rigor (5)      |  E. Text Representations & Security Benchmarks (5)              |
-| 19. Li et al. (2026)            | 24. Devlin et al. (BERT 2019)                                   |
-| 20. Bowles et al. (PRL 2024)    | 25. Reimers & Gurevych (Sentence-BERT 2019)                    |
-| 21. Meyer et al. (Quantum 2023) | 26. Song et al. (MPNet 2020)                                    |
-| 22. Shaydulin & Wild (TQE 2022) | 27. Al-Sallami et al. (ACM TOPS 2023)                           |
-| 23. Abbas et al. (Nat CS 2021)  | 28. Cortes et al. (JMLR 2012)                                   |
-+---------------------------------+-----------------------------------------------------------------+
++---------------------------------------------------------------------------------------------------------+
+|                    COMPREHENSIVE CLASSICAL BASELINE AUDIT (FULL TF-IDF vs 8D SVD)                       |
++------------------+-----------------------+---------------------+-------------------+--------------------+
+| Corpus           | Model Architecture    | Full 50k TF-IDF F1  | Matched 8D SVD F1 | Train Latency (s)  |
++------------------+-----------------------+---------------------+-------------------+--------------------+
+| SMS Spam         | Linear SVM            | 0.9559 ± 0.000      | 0.8273 ± 0.011    | 0.03 s             |
+|                  | Matched RBF SVM       | 0.9498 ± 0.000      | 0.8156 ± 0.012    | 1.53 s             |
+|                  | Tuned RBF SVM         | 0.9521 ± 0.000      | 0.8285 ± 0.010    | 5.20 s             |
+|                  | Logistic Regression   | 0.9346 ± 0.000      | 0.8226 ± 0.012    | 0.09 s             |
+|                  | Random Forest         | 0.9423 ± 0.005      | 0.8500 ± 0.006    | 0.90 s             |
+|                  | XGBoost               | 0.9059 ± 0.000      | 0.8452 ± 0.013    | 0.86 s             |
+|                  | MLP (Neural Net)      | 0.9324 ± 0.008      | 0.8284 ± 0.014    | 4.68 s             |
+|                  | Multinomial / Gauss NB| 0.9158 ± 0.000      | 0.8195 ± 0.007    | 0.01 s             |
+|                  | k-NN                  | 0.6900 ± 0.000      | 0.8401 ± 0.019    | 0.00 s             |
++------------------+-----------------------+---------------------+-------------------+--------------------+
+| CEAS 2008        | Linear SVM            | 0.9954 ± 0.000      | 0.9535 ± 0.001    | 0.15 s             |
+|                  | Matched RBF SVM       | 0.9968 ± 0.000      | 0.9638 ± 0.001    | 57.15 s            |
+|                  | Tuned RBF SVM         | 0.9972 ± 0.000      | 0.9691 ± 0.001    | 185.2 s            |
+|                  | Logistic Regression   | 0.9935 ± 0.000      | 0.9505 ± 0.001    | 0.26 s             |
+|                  | Random Forest         | 0.9895 ± 0.001      | 0.9816 ± 0.001    | 1.76 s             |
+|                  | XGBoost               | 0.9886 ± 0.000      | 0.9810 ± 0.001    | 23.24 s            |
+|                  | MLP (Neural Net)      | 0.9966 ± 0.000      | 0.9614 ± 0.003    | 46.28 s            |
+|                  | Multinomial / Gauss NB| 0.9928 ± 0.000      | 0.7165 ± 0.000    | 0.01 s             |
+|                  | k-NN                  | 0.9957 ± 0.000      | 0.9823 ± 0.000    | 0.02 s             |
++------------------+-----------------------+---------------------+-------------------+--------------------+
+| MeAJOR Archive   | Linear SVM            | 0.9721 ± 0.000      | 0.8448 ± 0.002    | 0.18 s             |
+|                  | Matched RBF SVM       | 0.9700 ± 0.000      | 0.8709 ± 0.003    | 71.84 s            |
+|                  | Tuned RBF SVM         | 0.9734 ± 0.000      | 0.8742 ± 0.003    | 240.5 s            |
+|                  | Logistic Regression   | 0.9574 ± 0.000      | 0.8458 ± 0.002    | 0.35 s             |
+|                  | Random Forest         | 0.9516 ± 0.002      | 0.9014 ± 0.006    | 2.16 s             |
+|                  | XGBoost               | 0.9453 ± 0.000      | 0.9005 ± 0.005    | 26.59 s            |
+|                  | MLP (Neural Net)      | 0.9727 ± 0.003      | 0.8795 ± 0.002    | 42.12 s            |
+|                  | Multinomial / Gauss NB| 0.9481 ± 0.000      | 0.7258 ± 0.005    | 0.01 s             |
+|                  | k-NN                  | 0.9532 ± 0.000      | 0.8870 ± 0.002    | 0.02 s             |
++------------------+-----------------------+---------------------+-------------------+--------------------+
 ```
 
 ---
@@ -151,9 +170,8 @@ quantum/
 │   └── exp47/
 │       ├── SAMPLE_PAPER.pdf       # 10-page complete compiled PDF
 │       ├── SAMPLE_PAPER.tex       # Standalone paper LaTeX source
-│       ├── LITERATURE_GAP_TABLE.csv
-│       ├── MODEL_COMPARISON_TABLE.csv
-│       └── CLAIM_EVIDENCE_MATRIX.csv
+│       ├── SAMPLE_PAPER.md        # Formatted markdown preprint version
+│       └── ...
 ├── server.py                      # Gradio + FastAPI deployment entrypoint
 ├── requirements.txt
 └── README.md
@@ -177,22 +195,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Run the Full-Stack Research Platform Locally
-
-**Start the FastAPI Backend:**
-```bash
-uvicorn app.api:app --host 127.0.0.1 --port 8000 --reload
-```
-
-**Start the React Frontend:**
-```bash
-cd frontend
-npm install
-npm run dev
-```
-Navigate to `http://localhost:5173` to explore the interactive dashboard.
-
-### 3. Run Confirmation Experiments
+### 2. Run Confirmation Experiments
 ```bash
 # Execute 10-seed confirmation sweep (Exp 40)
 python3 experiments/40_confirmation_experiments.py
@@ -201,7 +204,7 @@ python3 experiments/40_confirmation_experiments.py
 python3 experiments/45_classical_baseline_audit.py
 ```
 
-### 4. Compile the Academic Paper PDF
+### 3. Compile the Academic Paper PDF
 ```bash
 tectonic results/exp47/SAMPLE_PAPER.tex
 ```
@@ -214,7 +217,7 @@ If you use this benchmark, experimental protocols, or dataset partitions in your
 
 ```bibtex
 @article{anonymous2026quantumtextsecurity,
-  title={When Do Quantum Kernels Help for Text Security? A Multi-Dataset Evaluation of Representation, Geometry, Generalization, and Computational Cost},
+  title={Evaluating a Parameter-Free Quantum Fidelity Kernel for Text Security Under Representation and Domain Shift},
   author={Anonymous Authors},
   journal={Archival Research Preprint},
   year={2026},
