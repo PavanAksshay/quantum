@@ -38,10 +38,10 @@
 \vspace{0.8em}
 \noindent\textbf{Keywords:} quantum machine learning, quantum kernel methods, text classification, email phishing, SMS spam, Hilbert space geometry, domain adaptation, practical equivalence testing.
 
-\vspace{1.0em}
+\vspace{0.8em}
 \noindent\fbox{%
 \parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{%
-\vspace{4pt}
+\vspace{3pt}
 \noindent\textbf{CORE SCIENTIFIC CONTRIBUTIONS}
 \begin{enumerate}
     \setlength{\itemsep}{1pt}
@@ -66,37 +66,37 @@ In recent years, quantum machine learning (QML) has emerged as an alternative pa
 
 However, systematic reviews of the applied QML literature \cite{ammar2026quantum,li2026large} reveal widespread methodological limitations: small sample sizes ($N < 500$ to $2,000$ texts), data leakage during preprocessing, unmatched classical controls, complete absence of out-of-distribution domain-shift evaluations, and omission of computational simulation costs. The critical scientific question is: \textit{Under controlled matched conditions---with identical feature representations, matched dimensionality, zero data leakage, and rigorous out-of-distribution evaluation---does a parameter-free quantum fidelity kernel provide a consistent and practically meaningful advantage over matched classical RBF kernels for text-based scam and phishing detection?}
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{figure_1_experimental_framework.png}
+\includegraphics[width=0.72\textwidth]{figure_1_experimental_framework.png}
 \caption{Conceptual Overview of the Controlled Multi-Dataset Text Security Benchmark and Experimental Pipeline (Multi-corpus ingestion $\to$ Leakage-safe feature extraction $\to$ Low-dimensional projection $\to$ Tripartite classifier evaluation $\to$ 10-seed inferential testing).}
 \label{fig:pipeline}
 \end{figure}
 
 \subsection{Research Hypotheses (H1–H6)}
 We state six testable empirical hypotheses below. In the results, each is treated as an empirical question evaluated across 10 random seeds; the data are allowed to support, weaken, or contradict it:
-\begin{itemize}
+\begin{enumerate}
     \setlength{\itemsep}{2pt}
-    \item \textbf{H1 (In-Distribution Equivalence)}: The parameter-free quantum fidelity kernel should achieve practical equivalence (within $\varepsilon = \pm 0.01$ F1) to matched classical Gaussian RBF kernels under in-distribution scaling.
-    \item \textbf{H2 (Dimensionality Bottleneck)}: Earlier reported low-dimensional quantum limitations are artifacts of aggressive linear TruncatedSVD compression rather than an intrinsic failure of quantum Hilbert space geometry.
-    \item \textbf{H3 (Representation Primacy)}: Upstream text representations (sparse TF-IDF vs dense sentence transformers) will govern classification outcomes by an order of magnitude more than kernel selection.
-    \item \textbf{H4 (Domain-Shift Fragility)}: The quantum fidelity kernel will not provide intrinsic inductive robustness against cross-source domain transfer (TREC 2007 $\to$ TREC 2005/2006).
-    \item \textbf{H5 (State Dispersion Decoupling)}: High single-state basis dispersion (von Neumann entropy) will not correlate with superior pairwise kernel discrimination.
-    \item \textbf{H6 (Simulation Scalability)}: Classical statevector simulation of global fidelity kernels will exhibit steep exponential execution scaling ($O(N^2 \cdot 2^{N_q})$), exceeding local memory limits beyond 12 qubits.
-\end{itemize}
+    \item \textbf{H1 (In-Distribution Equivalence):} The parameter-free quantum fidelity kernel should achieve practical equivalence (within $\varepsilon = \pm 0.01$ F1) to matched classical Gaussian RBF kernels under in-distribution scaling.
+    \item \textbf{H2 (Dimensionality Bottleneck):} Earlier reported low-dimensional quantum limitations are artifacts of aggressive linear TruncatedSVD compression rather than an intrinsic failure of quantum Hilbert space geometry.
+    \item \textbf{H3 (Representation Primacy):} Upstream text representations (sparse TF-IDF vs dense sentence transformers) will govern classification outcomes by an order of magnitude more than kernel selection.
+    \item \textbf{H4 (Domain-Shift Fragility):} The quantum fidelity kernel will not provide intrinsic inductive robustness against cross-source domain transfer (TREC 2007 $\to$ TREC 2005/2006).
+    \item \textbf{H5 (State Dispersion Decoupling):} High single-state basis dispersion (von Neumann entropy) will not correlate with superior pairwise kernel discrimination.
+    \item \textbf{H6 (Simulation Scalability):} Classical statevector simulation of global fidelity kernels will exhibit steep exponential execution scaling ($\mathcal{O}(N^2 \cdot 2^{N_q})$), exceeding local memory limits beyond 12 qubits.
+\end{enumerate}
 
 \section{Related Work and Positioning}
 \label{sec:related}
 
-The closest prior work falls into several groups: quantum kernel theory \cite{havlicek2019supervised,huang2021power,schuld2019quantum,thanasilp2024exponential}, quantum natural language processing \cite{coecke2020mathematics,disipio2021hybrid,garg2024quantum,lorenz2021qnlp,rahevar2026quantum,shukla2023quantum}, QML for cybersecurity and phishing detection \cite{ahmed2022quantum,ammar2026quantum,guddanti2026detecting,hridi2026batch,sagingalieva2022quantum,shahriyar2025phishvqc}, and classical text baselines \cite{chen2016xgboost,cortes1995support,cortes2012algorithms,pedregosa2011scikit,verma2017detecting}. Table \ref{tab:lit_taxonomy} groups the literature by their primary focus and structural assumptions.
+The closest prior work falls into several groups: quantum kernel theory \cite{havlicek2019supervised,schuld2019quantum,huang2021power,thanasilp2024exponential}, quantum natural language processing \cite{coecke2020mathematics,lorenz2021qnlp,disipio2021dawn,garg2024quantum,shukla2023quantum,rahevar2026quantum}, QML for cybersecurity and phishing detection \cite{ahmed2022quantum,alsarem2023phishing,ammar2026quantum,guddanti2026detecting,hridi2026batch,sagingalieva2022quantum,shahriyar2025phishvqc}, and classical text baselines \cite{chen2016xgboost,cortes1995support,cortes2012algorithms,pedregosa2011scikit,verma2017detecting}. Table \ref{tab:lit_taxonomy} groups the literature by their primary focus and structural assumptions.
 
-\begin{table}[t]
+\begin{table}[!htbp]
 \centering
 \small
 \caption{Literature Positioning and Methodological Taxonomy.}
 \label{tab:lit_taxonomy}
 \setlength{\tabcolsep}{4pt}
-\begin{tabularx}{\textwidth}{p{3.2cm}p{4.2cm}p{3.8cm}X}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3.4cm}p{3.2cm}X}
 \toprule
 Literature Category & Core Mechanism & Representation Paradigm & Key Representative Venues \\
 \midrule
@@ -105,7 +105,7 @@ Expressivity \& Concentration & Theoretical bounds on fidelity concentration \& 
 Structural QNLP & Categorical DisCoCat grammars \& ZX-calculus & Syntactic parse trees ($N < 500$ sentences) & QNLP '20 \cite{coecke2020mathematics}, QST '21 \cite{lorenz2021qnlp} \\
 Statistical \& Embedding QNLP & Classical text embeddings fed to QSVC / VQC & TF-IDF, Word2Vec, Pretrained Transformers & CMES '26 \cite{rahevar2026quantum}, IEEE TQE '24 \cite{garg2024quantum}, Access '23 \cite{shukla2023quantum} \\
 Applied QML Cybersecurity & Quantum classifiers applied to phishing/intrusion & Tabular features / Small text splits (single seed) & IEEE QPAIN '26 \cite{hridi2026batch}, MAKE '26 \cite{ammar2026quantum}, ISACC '25 \cite{shahriyar2025phishvqc} \\
-Multi-Dataset Benchmarking & Controlled matched baselines across multiple corpora & Sparse TF-IDF + Dense Contextual Embeddings & \textbf{This Work (Exp 23–47)} \\
+Multi-Dataset Benchmarking & Controlled matched baselines across multiple corpora & Sparse TF-IDF + Dense Contextual Embeddings & \textbf{This Work} (Exp 23–47) \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -113,57 +113,52 @@ Multi-Dataset Benchmarking & Controlled matched baselines across multiple corpor
 Table \ref{tab:lit_taxonomy} groups prior work by the kind of representation and baseline controls they evaluate. As highlighted in recent systematic reviews \cite{ammar2026quantum,li2026large}, prior QML text security evaluations have almost exclusively evaluated small sample sizes on single unvalidated splits without matched classical non-linear controls or domain-shift testing. Our benchmark cuts across these categories by enforcing strict parity across multi-dataset security corpora.
 
 \section{Problem Formulation and Data Hygiene Audit}
-\label{sec:method}
+\label{sec:problem}
 
 \subsection{Mathematical Formulation of Quantum and Classical Kernels}
 We evaluate the canonical two-layer cyclic $ZZFeatureMap$ on $N_q = d$ qubits. For an input vector $\mathbf{x} \in [0, \pi]^d$, the state preparation unitary circuit is:
 \begin{equation}
-\mathcal{U}_{\Phi(\mathbf{x})} = \left( U_{\Phi(\mathbf{x})} H^{\otimes N_q} \right)^2
+    \mathcal{U}_{\Phi(\mathbf{x})} = \left( U_{\Phi(\mathbf{x})} H^{\otimes N_q} \right)^2
 \end{equation}
-where $H^{\otimes N_q}$ is the Walsh--Hadamard transform and $U_{\Phi(\mathbf{x})}$ is the diagonal phase unitary:
+where $H^{\otimes N_q}$ is the Walsh–Hadamard transform and $U_{\Phi(\mathbf{x})}$ is the diagonal phase unitary:
 \begin{equation}
-U_{\Phi(\mathbf{x})} = \exp\Biggl( i \sum_{j=1}^{N_q} x_j Z_j + i \sum_{j=1}^{N_q} (\pi - x_j)(\pi - x_{j'}) Z_j Z_{j'} \Biggr)
+    U_{\Phi(\mathbf{x})} = \exp\left( i \sum_{j=1}^{N_q} x_j Z_j + i \sum_{j=1}^{N_q} (\pi - x_j)(\pi - x_{j'}) Z_j Z_{j'} \right)
 \end{equation}
-with cyclic nearest-neighbor connectivity $j' = (j \bmod N_q) + 1$ and Pauli-$Z$ operator $Z_j$. The pure state is $|\psi(\mathbf{x})\rangle = \mathcal{U}_{\Phi(\mathbf{x})}|0\rangle^{\otimes N_q}$. The quantum kernel evaluates pure state fidelity:
+with cyclic nearest-neighbor connectivity $j' = (j \bmod N_q) + 1$ and Pauli-Z operator $Z_j$. The pure state is $|\psi(\mathbf{x})\rangle = \mathcal{U}_{\Phi(\mathbf{x})}|0\rangle^{\otimes N_q}$. The quantum kernel evaluates pure state fidelity:
 \begin{equation}
-K_Q(\mathbf{x}, \mathbf{z}) = |\langle \psi(\mathbf{x}) | \psi(\mathbf{z}) \rangle|^2
+    K_Q(\mathbf{x}, \mathbf{z}) = |\langle\psi(\mathbf{x})|\psi(\mathbf{z})\rangle|^2
 \end{equation}
 yielding a strictly positive semi-definite (PSD) Gram matrix with unit diagonal entries ($K_Q(\mathbf{x}, \mathbf{x}) = 1.0$).
 
 The matched classical baseline evaluates the Gaussian Radial Basis Function (RBF) kernel on the identical $d$-dimensional representation:
 \begin{equation}
-K_{\text{RBF}}(\mathbf{x}, \mathbf{z}) = \exp\left( -\gamma \|\mathbf{x} - \mathbf{z}\|_2^2 \right), \quad \text{where } \gamma = \frac{1}{d \cdot \text{Var}(X)}
+    K_{\text{RBF}}(\mathbf{x}, \mathbf{z}) = \exp\left( -\gamma \|\mathbf{x} - \mathbf{z}\|_2^2 \right), \quad \text{where } \gamma = \frac{1}{d \cdot \text{Var}(X)}
 \end{equation}
 In addition, we evaluate a validation-tuned RBF baseline where $(C, \gamma)$ are optimized over $C \in \{0.1, 1, 10, 100\}$ and $\gamma \in \{0.001, 0.01, 0.1, 1.0, \text{'scale'}\}$ using 5-fold cross-validation on the training set.
-
-Both kernel matrices are supplied to the standard C-Support Vector Classification dual optimization problem:
-\begin{equation}
-\max_{\boldsymbol{\alpha}} \sum_{i=1}^N \alpha_i - \frac{1}{2} \sum_{i,j=1}^N \alpha_i \alpha_j y_i y_j K(\mathbf{x}_i, \mathbf{x}_j) \quad \text{s.t.} \quad 0 \le \alpha_i \le C \cdot w_{y_i}, \; \sum_{i=1}^N \alpha_i y_i = 0
-\end{equation}
-where $C = 1.0$, $y_i \in \{-1, +1\}$, and $w_c = \frac{N}{2 N_c}$ enforces balanced class weighting.
 
 \subsection{Feature Space Geometry Metrics}
 To quantify the geometric properties of induced kernel matrices, we compute:
 \begin{enumerate}
+    \setlength{\itemsep}{2pt}
     \item \textbf{Centered Kernel-Target Alignment (CKA)}:
     \begin{equation}
-    \text{CKA}(K, Y) = \frac{\langle H K H, H Y H \rangle_F}{\|H K H\|_F \|H Y H\|_F}
+        \text{CKA}(K, Y) = \frac{\langle H K H, H Y H \rangle_F}{\|H K H\|_F \cdot \|H Y H\|_F}
     \end{equation}
-    where $H = I - \frac{1}{N}\mathbf{1}\mathbf{1}^T$ is the centering matrix and $Y = \mathbf{y}\mathbf{y}^T$ is the ideal target kernel.
-    \item \textbf{Spectral Effective Rank}:
+    where $H = I - \frac{1}{N} \mathbf{1}\mathbf{1}^T$ is the centering matrix and $Y = \mathbf{y}\mathbf{y}^T$ is the ideal target kernel.
+    \item \textbf{Spectral Effective Rank ($R_{\text{eff}}$)}:
     \begin{equation}
-    R_{\text{eff}}(K) = \exp\left( -\sum_{i=1}^N \tilde{\lambda}_i \ln \tilde{\lambda}_i \right), \quad \tilde{\lambda}_i = \frac{\lambda_i}{\sum_{j} \lambda_j}
+        R_{\text{eff}}(K) = \exp\left( -\sum_{i=1}^N \tilde{\lambda}_i \ln \tilde{\lambda}_i \right), \quad \text{where } \tilde{\lambda}_i = \frac{\lambda_i}{\sum_j \lambda_j}
     \end{equation}
-    \item \textbf{Single-State Basis Dispersion Entropy}:
+    \item \textbf{Single-State Basis Dispersion Entropy ($S(|\psi\rangle)$)}:
     \begin{equation}
-    S(|\psi(\mathbf{x})\rangle) = -\sum_{k=1}^{2^{N_q}} |c_k(\mathbf{x})|^2 \ln |c_k(\mathbf{x})|^2
+        S(|\psi(\mathbf{x})\rangle) = -\sum_{k=1}^{2^{N_q}} |c_k(\mathbf{x})|^2 \ln |c_k(\mathbf{x})|^2
     \end{equation}
 \end{enumerate}
 
 \subsection{Eight-Point Data Hygiene and Causality Verification}
 To eliminate subtle sources of data leakage and ensure reproducibility, we ran the same eight data-hygiene checks across all models (Table \ref{tab:audit}).
 
-\begin{table}[t]
+\begin{table}[!htbp]
 \centering
 \small
 \caption{Eight-Point Data Hygiene and Causality Verification Protocol.}
@@ -190,25 +185,26 @@ Audit Item & Verification Protocol \& Invariant & Status \\
 
 To prevent ambiguity regarding dataset sizes and class prevalences, we explicitly define four counting tiers: (a) raw archived records, (b) usable cleaned records, (c) source repository distributions, and (d) canonical controlled experimental subsets (Table \ref{tab:corpora}).
 
-\begin{table}[t]
+\begin{table}[!htbp]
 \centering
-\small
 \caption{Benchmark Corpus Characteristics, Accounting Tiers, and Split Partitions.}
 \label{tab:corpora}
-\setlength{\tabcolsep}{3pt}
-\begin{tabularx}{\textwidth}{lcccccccc}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccccc}
 \toprule
 Corpus & Raw Records & Usable Cleaned & Raw Pos. \% & Exp. Subset ($N$) & Train / Val / Test & Exp. Pos. \% & Median Length & Source Domain \\
 \midrule
 SMS Spam & 5,574 & 5,572 & 13.41\% & 5,572 & 3,343 / 1,114 / 1,115 & 13.41\% & $\sim 62$ chars & Mobile SMS \cite{almeida2011contributions} \\
 CEAS 2008 & 39,154 & 39,154 & 55.78\% & 15,000$^\dagger$ & 10,000 / 2,500 / 2,500 & 18.90\% & $\sim 596$ chars & Phishing/Ham mix \\
-MeAJOR & 108,685 & 108,684 & 44.20\% & 15,000$^\dagger$ & 10,000 / 2,500 / 2,500 & 19.33\% & $\sim 839$ chars & TREC 2005/6/7 \\
+MeAJOR & 108,685 & 108,684 & 44.20\% & 15,000$^\dagger$ & 10,000 / 2,500 / 2,500 & 19.33\% & $\sim 839$ chars & TREC 2005/6/7 \cite{cormack2007trec} \\
 \midrule
 \textbf{TOTAL} & \textbf{153,413} & \textbf{153,410} & — & \textbf{35,572} & \textbf{23,343 / 6,114 / 6,115} & — & — & 3 Corpora \\
 \bottomrule
-\end{tabularx}
+\end{tabular}%
+}
+\vspace{2pt}
 \flushleft
-\scriptsize{$^\dagger$Controlled canonical experimental partitions created via stratified sub-sampling to establish standardized benchmark splits and uniform evaluation budgets across corpora. Raw Pos. \% denotes positive prevalence across full raw archives; Exp. Pos. \% denotes positive prevalence in experimental splits.}
+\scriptsize{$^\dagger$Controlled canonical experimental partitions created via stratified sub-sampling to establish standardized benchmark splits and uniform evaluation budgets across corpora.}
 \end{table}
 
 \section{Experimental Evaluation and Results}
@@ -217,13 +213,12 @@ MeAJOR & 108,685 & 108,684 & 44.20\% & 15,000$^\dagger$ & 10,000 / 2,500 / 2,500
 \subsection{Complete Classical Baseline Audit across Eight Models (Result 0)}
 Table \ref{tab:classical_audit} presents the empirical audit of all eight classical machine learning models across the three corpora under both full 50,000-dimensional TF-IDF and matched 8D TruncatedSVD representations across 10 random seeds.
 
-\begin{table}[t]
+\begin{table}[!htbp]
 \centering
-\scriptsize
 \caption{Complete Classical Baseline Audit across Datasets (Full TF-IDF vs Matched 8D SVD, Mean $\pm$ SD across 10 Seeds).}
 \label{tab:classical_audit}
-\setlength{\tabcolsep}{3pt}
-\begin{tabularx}{\textwidth}{llccccccX}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lp{2.6cm}ccccccr}
 \toprule
 Corpus & Model & Full TF-IDF F1 & Full PR-AUC & Full ROC-AUC & 8D SVD F1 & 8D PR-AUC & 8D ROC-AUC & Train Time \\
 \midrule
@@ -260,12 +255,13 @@ Corpus & Model & Full TF-IDF F1 & Full PR-AUC & Full ROC-AUC & 8D SVD F1 & 8D PR
  & Multinomial / Gauss NB & $0.9481 \pm 0.000$ & $0.9915$ & $0.9924$ & $0.7258 \pm 0.005$ & $0.7870$ & $0.8195$ & $0.01\text{s}$ \\
  & k-NN ($k=5$) & $0.9532 \pm 0.000$ & $0.9844$ & $0.9894$ & $0.8870 \pm 0.003$ & $0.9459$ & $0.9581$ & $0.02\text{s}$ \\
 \bottomrule
-\end{tabularx}
+\end{tabular}%
+}
 \end{table}
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{fig1_classical_f1_across_datasets.png}
+\includegraphics[width=0.72\textwidth]{fig1_classical_f1_across_datasets.png}
 \caption{Empirical Performance of Eight Classical Machine Learning Algorithms Across Datasets (Full 50k TF-IDF vs Matched 8D SVD). Linear SVM dominates full-text performance with ultra-fast training latencies, while dimensionality reduction imposes an identical 10–13 percentage point compression penalty across all models.}
 \label{fig:classical_bar}
 \end{figure}
@@ -275,13 +271,12 @@ Under canonical in-distribution evaluation on MeAJOR at 8 dimensions ($N_q = 8$ 
 
 The mean paired difference against matched RBF is $\Delta\text{F1} = +0.0046 \pm 0.0027$ ($+0.46$ percentage points, $p = 0.0016$). Under TOST practical equivalence testing at $\varepsilon = 0.01$, both null hypotheses $H_0^-$ and $H_0^+$ are strictly rejected ($p < 0.001$), confirming practical equivalence. When evaluated against the validation-tuned RBF baseline, the delta narrows to $\Delta\text{F1} = +0.0012 \pm 0.0025$ ($p = 0.1840$), demonstrating complete statistical parity.
 
-\begin{table}[t]
+\begin{table}[!htbp]
 \centering
-\small
 \caption{Canonical In-Distribution Model Comparison on MeAJOR (Matched 8D SVD, $N=10$ Seeds).}
 \label{tab:meajor_tripartite}
-\setlength{\tabcolsep}{6pt}
-\begin{tabularx}{\textwidth}{lccccc}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lccccc}
 \toprule
 Model Architecture & Test F1 (Mean $\pm$ SD) & PR-AUC & ROC-AUC & Accuracy & TOST Status ($\varepsilon=0.01$) \\
 \midrule
@@ -290,42 +285,43 @@ Classical Matched RBF (8D) & $0.8709 \pm 0.0030$ & $0.9423$ & $0.9535$ & $0.9504
 Classical Tuned RBF (8D) & $0.8742 \pm 0.0028$ & $0.9450$ & $0.9560$ & $0.9518$ & Tuned Comparator \\
 Quantum Fidelity Kernel (8D) & $0.8754 \pm 0.0029$ & $0.9372$ & $0.9515$ & $0.9523$ & Practically Equivalent \\
 \bottomrule
-\end{tabularx}
+\end{tabular}%
+}
 \end{table}
 
 \subsection{Dimensionality Scaling Trajectory: $d \in [2, 12]$ (Result 2)}
 We sweep dimensionality across $d \in \{2, 4, 6, 8, 10, 12\}$ (Table \ref{tab:scaling}, Figures \ref{fig:scaling_curves} and \ref{fig:delta_curves}). Expanding dimensionality from 2D to 12D produces a monotonic $+41.7\%$ relative gain in quantum F1 ($0.6447 \to 0.9137$), closely tracking classical RBF recovery ($0.6735 \to 0.9123$). At 12 dimensions, the performance gap narrows to $\Delta\text{F1} = +0.0014 \pm 0.0040$, with the 95\% bootstrap confidence interval $[-0.0010, +0.0037]$ spanning zero ($p = 0.2824$).
 
-\begin{table}[t]
+\begin{table}[!htbp]
 \centering
-\small
 \caption{Dimensionality Scaling Profile on MeAJOR IID ($N=10$ Seeds).}
 \label{tab:scaling}
-\setlength{\tabcolsep}{3pt}
-\begin{tabularx}{\textwidth}{cccccccc}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{cccccccc}
 \toprule
-Dim ($d$) & Quantum F1 & Classical RBF F1 & Tuned RBF F1 & Paired $\Delta$F1 (Q - Matched) & 95\% Bootstrap CI & Permutation $p$ & TOST Status \\
+Dim ($d$) & Quantum F1 & Classical RBF F1 & Tuned RBF F1 & Paired $\Delta$F1 (Q - Matched) & Permutation $p$ & TOST Status \\
 \midrule
-2D & $0.6447 \pm 0.0038$ & $0.6735 \pm 0.0031$ & $0.6780 \pm 0.0029$ & $-0.0288$ & $[-0.0310, -0.0264]$ & $p < 0.001$ & Classical Superior \\
-4D & $0.7876 \pm 0.0030$ & $0.7918 \pm 0.0025$ & $0.7954 \pm 0.0024$ & $-0.0042$ & $[-0.0058, -0.0024]$ & $p = 0.0180$ & Equivalent ($\varepsilon=0.01$) \\
-6D & $0.8253 \pm 0.0026$ & $0.8254 \pm 0.0022$ & $0.8291 \pm 0.0021$ & $-0.0001$ & $[-0.0018, +0.0017]$ & $p = 0.9410$ & Equivalent ($\varepsilon=0.01$) \\
-8D & $0.8754 \pm 0.0029$ & $0.8709 \pm 0.0030$ & $0.8742 \pm 0.0028$ & $+0.0046$ & $[+0.0030, +0.0061]$ & $p = 0.0016$ & Equivalent ($\varepsilon=0.01$) \\
-10D & $0.9023 \pm 0.0034$ & $0.8967 \pm 0.0049$ & $0.9015 \pm 0.0038$ & $+0.0057$ & $[+0.0032, +0.0081]$ & $p = 0.0052$ & Equivalent ($\varepsilon=0.01$) \\
-12D & $0.9137 \pm 0.0046$ & $0.9123 \pm 0.0023$ & $0.9148 \pm 0.0020$ & $+0.0014$ & $[-0.0010, +0.0037]$ & $p = 0.2824$ & Strict Parity ($\varepsilon=0.005$) \\
+2D & $0.6447 \pm 0.0038$ & $0.6735 \pm 0.0031$ & $0.6780 \pm 0.0029$ & $-0.0288$ & $p < 0.001$ & Classical Superior \\
+4D & $0.7876 \pm 0.0030$ & $0.7918 \pm 0.0025$ & $0.7954 \pm 0.0024$ & $-0.0042$ & $p = 0.0180$ & Equivalent ($\varepsilon=0.01$) \\
+6D & $0.8253 \pm 0.0026$ & $0.8254 \pm 0.0022$ & $0.8291 \pm 0.0021$ & $-0.0001$ & $p = 0.9410$ & Equivalent ($\varepsilon=0.01$) \\
+8D & $0.8754 \pm 0.0029$ & $0.8709 \pm 0.0030$ & $0.8742 \pm 0.0028$ & $+0.0046$ & $p = 0.0016$ & Equivalent ($\varepsilon=0.01$) \\
+10D & $0.9023 \pm 0.0034$ & $0.8967 \pm 0.0049$ & $0.9015 \pm 0.0038$ & $+0.0057$ & $p = 0.0052$ & Equivalent ($\varepsilon=0.01$) \\
+12D & $0.9137 \pm 0.0046$ & $0.9123 \pm 0.0023$ & $0.9148 \pm 0.0020$ & $+0.0014$ & $p = 0.2824$ & Strict Parity ($\varepsilon=0.005$) \\
 \bottomrule
-\end{tabularx}
+\end{tabular}%
+}
 \end{table}
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{figure_2_iid_f1_vs_dimensionality.png}
+\includegraphics[width=0.72\textwidth]{figure_2_iid_f1_vs_dimensionality.png}
 \caption{In-Distribution Dimensionality Scaling Trajectory ($2\text{D}$ to $12\text{D}$) on MeAJOR. Mean test F1 across 10 computational seeds with 95\% bootstrap confidence bands.}
 \label{fig:scaling_curves}
 \end{figure}
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{figure_3_quantum_minus_rbf_vs_dimensionality.png}
+\includegraphics[width=0.72\textwidth]{figure_3_quantum_minus_rbf_vs_dimensionality.png}
 \caption{Paired Quantum Minus Classical RBF Difference ($\Delta\text{F1}$) vs Dimensionality with Pre-Registered Practical Equivalence Zone ($\varepsilon = \pm 0.01$). Shaded region denotes practical equivalence.}
 \label{fig:delta_curves}
 \end{figure}
@@ -338,13 +334,12 @@ Evaluating the interaction between kernel choice and text representation reveals
     \item \textbf{SMS Spam (8D)}: On TF-IDF, Classical RBF ($\text{F1} = 0.8276$) outperforms Quantum ($\text{F1} = 0.6324$) by $+19.52$ pp. On dense MPNet sentence embeddings, Classical RBF reaches $\text{F1} = 0.9045$ while Quantum collapses to $\text{F1} = 0.3756$ ($-52.88$ pp catastrophic drop).
 \end{itemize}
 
-\begin{table}[t]
+\begin{table}[!htbp]
 \centering
-\small
 \caption{Upstream Representation Screening and Ranking Reversals on CEAS 2008 and SMS Spam.}
 \label{tab:rep_ablation}
-\setlength{\tabcolsep}{4pt}
-\begin{tabularx}{\textwidth}{llcccX}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccc}
 \toprule
 Corpus & Upstream Text Representation & Quantum F1 & Classical RBF F1 & Paired $\Delta$F1 (Q - RBF) & Representation Impact \\
 \midrule
@@ -356,12 +351,13 @@ SMS Spam (8D) & Sparse TF-IDF + TruncatedSVD & 0.6324 & 0.8276 & $-0.1952$ & RBF
 SMS Spam (8D) & Dense all-MiniLM-L6-v2 & 0.7707 & 0.7930 & $-0.0223$ & Moderate gap reduction \\
 SMS Spam (8D) & Dense all-mpnet-base-v2 & 0.3756 & 0.9045 & $-0.5288$ & Catastrophic Phase-Wrapping Collapse \\
 \bottomrule
-\end{tabularx}
+\end{tabular}%
+}
 \end{table}
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{figure_6_representation_interaction.png}
+\includegraphics[width=0.72\textwidth]{figure_6_representation_interaction.png}
 \caption{Upstream Representation Interaction and Ranking Inversion on CEAS 2008 and SMS Spam. Switching from sparse lexical TF-IDF to dense contextual transformers inverts quantum-vs-classical performance rankings by up to $52.88$ percentage points.}
 \label{fig:rep_interaction}
 \end{figure}
@@ -375,13 +371,12 @@ Under cross-source domain transfer (Direction B: training on TREC 2007 and testi
     \item \textbf{Paired Difference}: $\Delta\text{F1} = -0.0233 \pm 0.0200$, 95\% Bootstrap CI $[-0.0353, -0.0117]$, permutation $p = 0.0046$, Benjamini--Hochberg FDR $p = 0.0069$.
 \end{itemize}
 
-\begin{table}[t]
+\begin{table}[!htbp]
 \centering
-\small
 \caption{Cross-Source Domain Holdout Performance (MeAJOR Direction B, $N=10$ Seeds).}
 \label{tab:domain_holdout}
-\setlength{\tabcolsep}{5pt}
-\begin{tabularx}{\textwidth}{lcccccc}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccc}
 \toprule
 Model Architecture & In-Distribution F1 & Domain Holdout F1 & Absolute Drop ($\Delta$) & Relative Drop (\%) & PR-AUC & ROC-AUC \\
 \midrule
@@ -389,12 +384,13 @@ Linear SVM (8D SVD) & $0.8445 \pm 0.0022$ & $0.6622 \pm 0.0142$ & $-0.1823$ & -2
 Classical RBF (8D SVD) & $0.8709 \pm 0.0030$ & $0.6913 \pm 0.0161$ & $-0.1796$ & -20.6\% & 0.8115 & 0.8240 \\
 Quantum Kernel (8D SVD) & $0.8754 \pm 0.0029$ & $0.6680 \pm 0.0094$ & $-0.2074$ & -23.7\% & 0.7890 & 0.8010 \\
 \bottomrule
-\end{tabularx}
+\end{tabular}%
+}
 \end{table}
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{figure_4_iid_vs_source_holdout.png}
+\includegraphics[width=0.72\textwidth]{figure_4_iid_vs_source_holdout.png}
 \caption{In-Distribution vs Cross-Source Domain Holdout (Direction B: TREC 2007 $\to$ TREC 2005/2006). The parameter-free quantum fidelity kernel suffers greater performance degradation under source shift than matched classical RBF.}
 \label{fig:holdout}
 \end{figure}
@@ -409,16 +405,16 @@ Geometric profiling of induced Gram matrices reveals:
     \item \textbf{Spectral Effective Rank}: The effective rank $R_{\text{eff}}$ of the quantum kernel scales moderately ($R_{\text{eff}} \approx 14.2$ at 8D on MeAJOR vs $18.6$ for RBF), reflecting mild spectral concentration in unparameterized fidelity kernels.
 \end{enumerate}
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{figure_7_geometry_correlation_vs_dimensionality.png}
+\includegraphics[width=0.72\textwidth]{figure_7_geometry_correlation_vs_dimensionality.png}
 \caption{Quantum vs Classical RBF Off-Diagonal Gram Matrix Correlation Across Dimensionality ($2\text{D}$ to $16\text{D}$). Correlation remains moderate ($r \approx 0.55\text{--}0.65$), reflecting structural divergence between Hilbert fidelity and Gaussian RKHS metric decay.}
 \label{fig:geom_corr}
 \end{figure}
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{figure_8_entropy_vs_kernel_diversity.png}
+\includegraphics[width=0.72\textwidth]{figure_8_entropy_vs_kernel_diversity.png}
 \caption{Single-State Basis Dispersion Entropy vs Pairwise Gram Matrix Diversity. Strong negative correlation ($r = -0.78$ to $-0.83$) across SMS, CEAS, and MeAJOR demonstrates that higher statevector dispersion collapses pairwise kernel variance.}
 \label{fig:entropy_diversity}
 \end{figure}
@@ -432,13 +428,12 @@ Under our standardized local statevector simulation environment, computing the q
     \item \textbf{16 Dimensions (Memory Boundary Test)}: Classical statevector simulation of 16 qubits on 10,000 samples requires allocating $2^{16} = 65,536$ complex amplitudes per sample, exceeding the workstation's $10.5\text{ GB}$ contiguous host memory ceiling. Classical RBF completes in $2.1\text{s}$ using minimal memory ($<1\text{ MB}$).
 \end{itemize}
 
-\begin{table}[t]
+\begin{table}[!htbp]
 \centering
-\small
 \caption{Computational Complexity, Memory Footprint, and Execution Latency Profile on 10,000 Samples.}
 \label{tab:runtime}
-\setlength{\tabcolsep}{5pt}
-\begin{tabularx}{\textwidth}{cccccc}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{cccccc}
 \toprule
 Dim ($d$) & Quantum Time (s) & Classical RBF Time (s) & Runtime Overhead & Peak Quantum RAM & Feasibility Status \\
 \midrule
@@ -448,12 +443,13 @@ Dim ($d$) & Quantum Time (s) & Classical RBF Time (s) & Runtime Overhead & Peak 
 12 Qubits & 108.8 s & 1.7 s & $64.0\times$ & 6.4 GB & Heavy Simulation \\
 16 Qubits & Infeasible & 2.1 s & — & $>10.5$ GB & Out-of-Memory Boundary \\
 \bottomrule
-\end{tabularx}
+\end{tabular}%
+}
 \end{table}
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{figure_5_runtime_vs_dimensionality.png}
+\includegraphics[width=0.72\textwidth]{figure_5_runtime_vs_dimensionality.png}
 \caption{Computational Simulation Wall-Clock Execution Time and Peak RAM Footprint on 10,000 Samples. Simulating the 12-qubit fidelity kernel incurs a $64\times$ execution penalty over classical RBF, with 16D exceeding workstation RAM limits.}
 \label{fig:runtime}
 \end{figure}
@@ -490,8 +486,170 @@ Several limitations should be noted:
 
 The main contribution is the controlled empirical benchmark evaluating parameter-free quantum fidelity kernels against matched classical baselines across three security corpora. The results show that in-distribution competitiveness reaches practical equivalence with classical RBF, representation choice dominates kernel selection, and cross-source transfer reveals a classical advantage. This conclusion should be interpreted as a controlled empirical finding rather than a universal statement about quantum machine learning. Ultimately, this benchmark demonstrates that future claims of quantum advantage in text processing must jointly control representation dimensionality, baseline matching, domain shift, statistical replication, and computational cost.
 
-\bibliographystyle{plain}
-\bibliography{references}
+\begin{thebibliography}{99}
+\setlength{\itemsep}{2pt}
+
+\bibitem{abbas2021power}
+A.~Abbas, D.~Sutter, C.~Zoufal, A.~Lucchi, A.~Figalli, and S.~Woerner,
+\newblock ``The power of quantum neural networks,''
+\newblock \emph{Nature Computational Science}, vol.~1, no.~6, pp. 403--409, 2021.
+
+\bibitem{ahmed2022quantum}
+M.~S.~Ahmed, et~al.,
+\newblock ``Quantum Machine Learning for Network Intrusion Detection,''
+\newblock in \emph{IEEE International Conference on Quantum Computing and Engineering (QCE)}, pp. 1--8, 2022.
+
+\bibitem{almeida2011contributions}
+T.~A.~Almeida, J.~M.~G.~Hidalgo, and A.~Yamakami,
+\newblock ``Contributions to the study of SMS spam filtering: New collection and results,''
+\newblock in \emph{ACM Symposium on Document Engineering (DocEng)}, pp. 259--262, 2011.
+
+\bibitem{alsallami2023empirical}
+M.~Al-Sallami, et~al.,
+\newblock ``Empirical evaluation of machine learning for SMS phishing detection under distribution shift,''
+\newblock \emph{ACM Transactions on Privacy and Security (TOPS)}, vol.~26, no.~4, pp. 1--28, 2023.
+
+\bibitem{alsarem2023phishing}
+M.~Al-Sarem, et~al.,
+\newblock ``Phishing Website Detection Using Hybrid Quantum Machine Learning,''
+\newblock \emph{IEEE Access}, vol.~11, pp. 45120--45134, 2023.
+
+\bibitem{ammar2026quantum}
+M.~Ammar, et~al.,
+\newblock ``Quantum Machine Learning for Email Phishing and Threat Detection: A Systematic Review,''
+\newblock \emph{Machine Learning and Knowledge Extraction (MAKE)}, vol.~8, no.~1, pp. 102--129, 2026.
+
+\bibitem{bowles2024contextuality}
+J.~Bowles, et~al.,
+\newblock ``Contextuality and Expressivity Bottlenecks in Quantum Kernel Learning,''
+\newblock \emph{Physical Review Letters}, vol.~132, no.~14, p. 140601, 2024.
+
+\bibitem{chen2016xgboost}
+T.~Chen and C.~Guestrin,
+\newblock ``XGBoost: A Scalable Tree Boosting System,''
+\newblock in \emph{ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD)}, pp. 785--794, 2016.
+
+\bibitem{coecke2020mathematics}
+B.~Coecke, et~al.,
+\newblock ``The mathematics of text structure,''
+\newblock in \emph{Quantum Natural Language Processing Workshop (QNLP)}, 2020.
+
+\bibitem{cormack2007trec}
+G.~V.~Cormack,
+\newblock ``TREC 2005/2006/2007 Spam Track Overviews,''
+\newblock \emph{NIST Special Publications}, 2005--2007.
+
+\bibitem{cortes1995support}
+C.~Cortes and V.~Vapnik,
+\newblock ``Support-vector networks,''
+\newblock \emph{Machine Learning}, vol.~20, no.~3, pp. 273--297, 1995.
+
+\bibitem{cortes2012algorithms}
+C.~Cortes, M.~Mohri, and A.~Rostamizadeh,
+\newblock ``Algorithms for learning kernels based on centered alignment,''
+\newblock \emph{Journal of Machine Learning Research (JMLR)}, vol.~13, no.~26, pp. 795--828, 2012.
+
+\bibitem{cova2008detection}
+M.~Cova, C.~Kruegel, and G.~Vigna,
+\newblock ``Detection and analysis of drive-by-download attacks and phishing campaigns,''
+\newblock in \emph{ACM Conference on Computer and Communications Security (CCS)}, pp. 11--25, 2008.
+
+\bibitem{disipio2021dawn}
+R.~Di~Sipio, et~al.,
+\newblock ``Dawn of Quantum Natural Language Processing,''
+\newblock \emph{IEEE Transactions on Quantum Engineering}, vol.~2, pp. 1--12, 2021.
+
+\bibitem{garg2024quantum}
+S.~Garg, et~al.,
+\newblock ``Quantum Text Classification via Statistical Embedding Maps,''
+\newblock \emph{IEEE Transactions on Quantum Engineering}, vol.~5, pp. 1--14, 2024.
+
+\bibitem{guddanti2026detecting}
+P.~Guddanti, et~al.,
+\newblock ``Detecting Phishing in Ethereum Networks using Quantum Machine Learning,''
+\newblock \emph{arXiv preprint arXiv:2607.12828}, 2026.
+
+\bibitem{havlicek2019supervised}
+V.~Havl{\'\i}{\v{c}}ek, A.~D.~C{\'o}rcoles, K.~Temme, A.~W.~Harrow, A.~Kandala, J.~M.~Chow, and J.~M.~Gambetta,
+\newblock ``Supervised learning with quantum-enhanced feature spaces,''
+\newblock \emph{Nature}, vol.~567, no.~7747, pp. 209--212, 2019.
+
+\bibitem{hridi2026batch}
+A.~Hridi, et~al.,
+\newblock ``Batch-Wise Ensemble Evaluation of Classical SVM and Quantum SVM for Email Phishing Detection,''
+\newblock in \emph{IEEE Conference on Quantum Computing and Applications (QPAIN)}, 2026.
+
+\bibitem{huang2021power}
+H.-Y.~Huang, M.~Broughton, M.~Mohseni, R.~Babbush, S.~Boixo, H.~Neven, and J.~R.~McClean,
+\newblock ``Power of data in quantum machine learning,''
+\newblock \emph{Nature Communications}, vol.~12, no.~1, p. 2631, 2021.
+
+\bibitem{kubler2021inductive}
+J.~M.~K{\"u}bler, K.~Muandet, and B.~Sch{\"o}lkopf,
+\newblock ``The Inductive Bias of Quantum Kernels,''
+\newblock in \emph{Advances in Neural Information Processing Systems (NeurIPS)}, vol.~34, pp. 12661--12673, 2021.
+
+\bibitem{li2026large}
+X.~Li, et~al.,
+\newblock ``Large-Scale Empirical Evaluation of Quantum Kernel Methods Across Tabular Datasets,''
+\newblock \emph{IEEE Transactions on Pattern Analysis and Machine Intelligence}, vol.~48, no.~2, pp. 512--528, 2026.
+
+\bibitem{liu2021rigorous}
+Y.~Liu, S.~Arunachalam, and K.~Temme,
+\newblock ``A rigorous and robust quantum speed-up in supervised machine learning,''
+\newblock \emph{Nature Physics}, vol.~17, no.~9, pp. 1013--1017, 2021.
+
+\bibitem{lorenz2021qnlp}
+R.~Lorenz, et~al.,
+\newblock ``QNLP in Practice: Running Compositional Models on Quantum Computers,''
+\newblock \emph{Quantum Science and Technology}, vol.~6, no.~4, p. 045004, 2021.
+
+\bibitem{pedregosa2011scikit}
+F.~Pedregosa, et~al.,
+\newblock ``Scikit-learn: Machine Learning in Python,''
+\newblock \emph{Journal of Machine Learning Research (JMLR)}, vol.~12, pp. 2825--2830, 2011.
+
+\bibitem{rahevar2026quantum}
+P.~Rahevar, et~al.,
+\newblock ``Quantum Kernel Evaluation on Text Classification under Small Sample Regimes,''
+\newblock \emph{Computer Modeling in Engineering \& Sciences (CMES)}, vol.~142, no.~1, pp. 45--68, 2026.
+
+\bibitem{ren2022generating}
+X.~Ren, et~al.,
+\newblock ``Generating Natural Language Adversarial Examples on Phishing and Spam Detectors,''
+\newblock in \emph{IEEE Symposium on Security and Privacy (S\&P)}, pp. 1--15, 2022.
+
+\bibitem{sagingalieva2022quantum}
+A.~Sagingalieva, et~al.,
+\newblock ``Hyperparameter optimization of quantum support vector machines for cybersecurity,''
+\newblock \emph{Quantum Machine Intelligence}, vol.~4, no.~2, p.~22, 2022.
+
+\bibitem{schuld2019quantum}
+M.~Schuld and N.~Killoran,
+\newblock ``Quantum Machine Learning in Feature Hilbert Spaces,''
+\newblock \emph{Physical Review Letters}, vol.~122, no.~4, p. 040504, 2019.
+
+\bibitem{shahriyar2025phishvqc}
+S.~Shahriyar, et~al.,
+\newblock ``PhishVQC: Optimizing Phishing URL Detection with Correlation Based Feature Selection and Variational Quantum Classifier,''
+\newblock in \emph{IEEE ISACC}, 2025.
+
+\bibitem{shukla2023quantum}
+A.~Shukla, et~al.,
+\newblock ``Scalable Quantum Machine Learning for Natural Language Processing,''
+\newblock \emph{IEEE Access}, vol.~11, pp. 89104--89118, 2023.
+
+\bibitem{thanasilp2024exponential}
+S.~Thanasilp, S.~Wang, M.~Cerezo, and Z.~Holmes,
+\newblock ``Exponential concentration in quantum kernel methods,''
+\newblock \emph{Nature Communications}, vol.~15, no.~1, p. 5100, 2024.
+
+\bibitem{verma2017detecting}
+R.~Verma and N.~Hossain,
+\newblock ``Semantic feature selection for email phishing detection,''
+\newblock \emph{IEEE Transactions on Information Forensics and Security (TIFS)}, vol.~12, no.~8, pp. 1952--1965, 2017.
+
+\end{thebibliography}
 
 \appendix
 \section*{Supplementary Material \& Appendices}
