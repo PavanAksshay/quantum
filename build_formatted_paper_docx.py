@@ -2,7 +2,7 @@
 """
 Generate the complete sample research paper in DOCX format matching the exact
 single-column academic structure, layout, typography, boxed core contributions,
-hypotheses H1-H6, 10 detailed result tables, 9 embedded figures, and appendices A-F.
+hypotheses H1-H6, structured result tables, embedded figures, and appendices A-F.
 """
 
 import os
@@ -23,7 +23,7 @@ def set_cell_background(cell, fill_hex):
     shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
     tcPr.append(shd)
 
-def set_cell_margins(cell, top=100, bottom=100, left=140, right=140):
+def set_cell_margins(cell, top=60, bottom=60, left=60, right=60):
     """Set inner padding for a table cell."""
     tcPr = cell._element.get_or_add_tcPr()
     tcMar = parse_xml(f'<w:tcMar {nsdecls("w")}><w:top w:w="{top}" w:type="dxa"/><w:bottom w:w="{bottom}" w:type="dxa"/><w:left w:w="{left}" w:type="dxa"/><w:right w:w="{right}" w:type="dxa"/></w:tcMar>')
@@ -31,42 +31,42 @@ def set_cell_margins(cell, top=100, bottom=100, left=140, right=140):
 
 def add_heading_1(doc, text):
     p = doc.add_paragraph()
-    p.paragraph_format.space_before = Pt(16)
-    p.paragraph_format.space_after = Pt(4)
+    p.paragraph_format.space_before = Pt(14)
+    p.paragraph_format.space_after = Pt(3)
     p.paragraph_format.keep_with_next = True
     run = p.add_run(text)
     run.font.name = "Calibri"
-    run.font.size = Pt(14)
+    run.font.size = Pt(13)
     run.font.bold = True
     run.font.color.rgb = RGBColor(0, 0, 0)
     return p
 
 def add_heading_2(doc, text):
     p = doc.add_paragraph()
-    p.paragraph_format.space_before = Pt(12)
-    p.paragraph_format.space_after = Pt(3)
+    p.paragraph_format.space_before = Pt(10)
+    p.paragraph_format.space_after = Pt(2)
     p.paragraph_format.keep_with_next = True
     run = p.add_run(text)
     run.font.name = "Calibri"
-    run.font.size = Pt(11.5)
+    run.font.size = Pt(11)
     run.font.bold = True
     run.font.color.rgb = RGBColor(0, 0, 0)
     return p
 
-def add_body_p(doc, text, bold_prefix=None, space_after=5):
+def add_body_p(doc, text, bold_prefix=None, space_after=4):
     p = doc.add_paragraph()
     p.paragraph_format.space_before = Pt(0)
     p.paragraph_format.space_after = Pt(space_after)
-    p.paragraph_format.line_spacing = 1.15
+    p.paragraph_format.line_spacing = 1.12
     if bold_prefix:
         r_pre = p.add_run(bold_prefix)
         r_pre.font.name = "Calibri"
-        r_pre.font.size = Pt(10)
+        r_pre.font.size = Pt(9.5)
         r_pre.font.bold = True
         r_pre.font.color.rgb = RGBColor(0, 0, 0)
     run = p.add_run(text)
     run.font.name = "Calibri"
-    run.font.size = Pt(10)
+    run.font.size = Pt(9.5)
     run.font.color.rgb = RGBColor(30, 30, 30)
     return p
 
@@ -77,45 +77,46 @@ def add_boxed_contributions(doc, items):
     tbl.autofit = False
     
     cell = tbl.cell(0, 0)
-    cell.width = Inches(6.5)
+    cell.width = Inches(6.4)
     set_cell_background(cell, "FFFFFF")
-    set_cell_margins(cell, top=140, bottom=140, left=180, right=180)
+    set_cell_margins(cell, top=100, bottom=100, left=140, right=140)
     
-    # 4-side solid border
     tcPr = cell._element.get_or_add_tcPr()
+    tcW = parse_xml(f'<w:tcW {nsdecls("w")} w:w="{int(6.4 * 1440)}" w:type="dxa"/>')
+    tcPr.append(tcW)
     borders = parse_xml(f'<w:tcBorders {nsdecls("w")}><w:left w:val="single" w:sz="12" w:space="0" w:color="000000"/><w:top w:val="single" w:sz="12" w:space="0" w:color="000000"/><w:right w:val="single" w:sz="12" w:space="0" w:color="000000"/><w:bottom w:val="single" w:sz="12" w:space="0" w:color="000000"/></w:tcBorders>')
     tcPr.append(borders)
     
     p = cell.paragraphs[0]
     p.paragraph_format.space_before = Pt(0)
-    p.paragraph_format.space_after = Pt(4)
+    p.paragraph_format.space_after = Pt(3)
     run_t = p.add_run("CORE SCIENTIFIC CONTRIBUTIONS\n")
     run_t.font.name = "Calibri"
-    run_t.font.size = Pt(10)
+    run_t.font.size = Pt(9.5)
     run_t.font.bold = True
     run_t.font.color.rgb = RGBColor(0, 0, 0)
     
     for i, item in enumerate(items):
         p_item = cell.add_paragraph()
         p_item.paragraph_format.space_before = Pt(0)
-        p_item.paragraph_format.space_after = Pt(2)
-        p_item.paragraph_format.line_spacing = 1.1
+        p_item.paragraph_format.space_after = Pt(1.5)
+        p_item.paragraph_format.line_spacing = 1.08
         run_i = p_item.add_run(f"{i+1}. {item}")
         run_i.font.name = "Calibri"
-        run_i.font.size = Pt(9.5)
+        run_i.font.size = Pt(9.0)
         run_i.font.color.rgb = RGBColor(20, 20, 20)
         
-    doc.add_paragraph().paragraph_format.space_after = Pt(6)
+    doc.add_paragraph().paragraph_format.space_after = Pt(4)
 
-def add_table_with_caption(doc, table_num, caption, headers, data, col_widths=None):
-    """Add a structured academic table with caption on top."""
+def add_table_with_caption(doc, table_num, caption, headers, data, col_widths, font_size=8.0):
+    """Add a structured academic table strictly constrained within 6.4 in printable width."""
     p_cap = doc.add_paragraph()
-    p_cap.paragraph_format.space_before = Pt(10)
-    p_cap.paragraph_format.space_after = Pt(3)
+    p_cap.paragraph_format.space_before = Pt(8)
+    p_cap.paragraph_format.space_after = Pt(2)
     p_cap.paragraph_format.keep_with_next = True
     run_cap = p_cap.add_run(f"Table {table_num}: {caption}")
     run_cap.font.name = "Calibri"
-    run_cap.font.size = Pt(9.5)
+    run_cap.font.size = Pt(9.0)
     run_cap.font.bold = True
     run_cap.font.color.rgb = RGBColor(0, 0, 0)
     
@@ -123,85 +124,104 @@ def add_table_with_caption(doc, table_num, caption, headers, data, col_widths=No
     tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
     tbl.autofit = False
     
+    total_dxa = sum(int(w * 1440) for w in col_widths)
+    tblPr = tbl._element.xpath('w:tblPr')
+    if tblPr:
+        tblW = parse_xml(f'<w:tblW {nsdecls("w")} w:w="{total_dxa}" w:type="dxa"/>')
+        tblPr[0].append(tblW)
+        borders = parse_xml(f'<w:tblBorders {nsdecls("w")}><w:top w:val="single" w:sz="8" w:space="0" w:color="000000"/><w:bottom w:val="single" w:sz="8" w:space="0" w:color="000000"/><w:insideH w:val="single" w:sz="4" w:space="0" w:color="D9D9D9"/><w:insideV w:val="single" w:sz="4" w:space="0" w:color="D9D9D9"/><w:left w:val="single" w:sz="8" w:space="0" w:color="000000"/><w:right w:val="single" w:sz="8" w:space="0" w:color="000000"/></w:tblBorders>')
+        tblPr[0].append(borders)
+    
     # Header Row
-    hdr_cells = tbl.rows[0].cells
+    hdr_row = tbl.rows[0]
+    trPr = hdr_row._element.get_or_add_trPr()
+    trPr.append(parse_xml(f'<w:cantSplit {nsdecls("w")}/>'))
+    trPr.append(parse_xml(f'<w:tblHeader {nsdecls("w")}/>'))
+    
     for i, h in enumerate(headers):
-        hdr_cells[i].text = h
-        set_cell_background(hdr_cells[i], "F2F2F2")
-        set_cell_margins(hdr_cells[i], top=90, bottom=90, left=90, right=90)
-        p = hdr_cells[i].paragraphs[0]
+        cell = hdr_row.cells[i]
+        cell.text = h
+        cell.width = Inches(col_widths[i])
+        set_cell_background(cell, "F2F2F2")
+        set_cell_margins(cell, top=50, bottom=50, left=50, right=50)
+        tcPr = cell._element.get_or_add_tcPr()
+        tcW = parse_xml(f'<w:tcW {nsdecls("w")} w:w="{int(col_widths[i] * 1440)}" w:type="dxa"/>')
+        tcPr.append(tcW)
+        
+        p = cell.paragraphs[0]
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER if i > 0 else WD_ALIGN_PARAGRAPH.LEFT
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after = Pt(0)
         for run in p.runs:
             run.font.name = "Calibri"
-            run.font.size = Pt(8.5)
+            run.font.size = Pt(font_size)
             run.font.bold = True
             run.font.color.rgb = RGBColor(0, 0, 0)
             
     # Data Rows
     for row_idx, row_data in enumerate(data):
-        row_cells = tbl.rows[row_idx + 1].cells
+        row = tbl.rows[row_idx + 1]
+        trPr_data = row._element.get_or_add_trPr()
+        trPr_data.append(parse_xml(f'<w:cantSplit {nsdecls("w")}/>'))
+        
         for col_idx, cell_value in enumerate(row_data):
-            row_cells[col_idx].text = str(cell_value)
-            set_cell_background(row_cells[col_idx], "FFFFFF")
-            set_cell_margins(row_cells[col_idx], top=70, bottom=70, left=90, right=90)
-            p = row_cells[col_idx].paragraphs[0]
+            cell = row.cells[col_idx]
+            cell.text = str(cell_value)
+            cell.width = Inches(col_widths[col_idx])
+            set_cell_background(cell, "FFFFFF")
+            set_cell_margins(cell, top=40, bottom=40, left=50, right=50)
+            tcPr = cell._element.get_or_add_tcPr()
+            tcW = parse_xml(f'<w:tcW {nsdecls("w")} w:w="{int(col_widths[col_idx] * 1440)}" w:type="dxa"/>')
+            tcPr.append(tcW)
+            
+            p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER if col_idx > 0 else WD_ALIGN_PARAGRAPH.LEFT
+            p.paragraph_format.space_before = Pt(0)
+            p.paragraph_format.space_after = Pt(0)
             for run in p.runs:
                 run.font.name = "Calibri"
-                run.font.size = Pt(8.5)
+                run.font.size = Pt(font_size)
                 run.font.color.rgb = RGBColor(30, 30, 30)
                 
-    if col_widths:
-        for row in tbl.rows:
-            for idx, width in enumerate(col_widths):
-                row.cells[idx].width = Inches(width)
-                
-    # Thin solid borders
-    tblPr = tbl._element.xpath('w:tblPr')
-    if tblPr:
-        borders = parse_xml(f'<w:tblBorders {nsdecls("w")}><w:top w:val="single" w:sz="8" w:space="0" w:color="000000"/><w:bottom w:val="single" w:sz="8" w:space="0" w:color="000000"/><w:insideH w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/><w:insideV w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/><w:left w:val="single" w:sz="8" w:space="0" w:color="000000"/><w:right w:val="single" w:sz="8" w:space="0" w:color="000000"/></w:tblBorders>')
-        tblPr[0].append(borders)
-        
     p_sp = doc.add_paragraph()
     p_sp.paragraph_format.space_after = Pt(4)
     return tbl
 
-def add_figure_with_caption(doc, fig_path, fig_num, caption, width_in=5.8):
+def add_figure_with_caption(doc, fig_path, fig_num, caption, width_in=4.8):
     """Add a centered figure with bottom caption matching reference formatting."""
     if os.path.exists(fig_path):
         p_img = doc.add_paragraph()
         p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p_img.paragraph_format.space_before = Pt(8)
-        p_img.paragraph_format.space_after = Pt(3)
+        p_img.paragraph_format.space_before = Pt(6)
+        p_img.paragraph_format.space_after = Pt(2)
         p_img.add_run().add_picture(fig_path, width=Inches(width_in))
         
         p_cap = doc.add_paragraph()
         p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p_cap.paragraph_format.space_after = Pt(8)
+        p_cap.paragraph_format.space_after = Pt(6)
+        p_cap.paragraph_format.keep_with_next = True
         run_cap = p_cap.add_run(f"Figure {fig_num}: {caption}")
         run_cap.font.name = "Calibri"
-        run_cap.font.size = Pt(8.5)
-        run_cap.font.italic = False
+        run_cap.font.size = Pt(8.0)
         run_cap.font.color.rgb = RGBColor(60, 60, 60)
 
 def build_formatted_paper():
     print("Building Formatted Research Paper DOCX matching Reference Document...")
     doc = Document()
     
-    # 1-inch margins, Letter size
+    # 1-inch margins, Letter size (Text width = 6.5 in)
     for section in doc.sections:
         section.top_margin = Inches(1.0)
         section.bottom_margin = Inches(1.0)
         section.left_margin = Inches(1.0)
         section.right_margin = Inches(1.0)
         
-        # Header / Footer
         footer = section.footer
         f_p = footer.paragraphs[0]
         f_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         f_run = f_p.add_run("Evaluating Quantum Fidelity Kernels for Text Security")
         f_run.font.name = "Calibri"
-        f_run.font.size = Pt(8.5)
+        f_run.font.size = Pt(8.0)
         f_run.font.color.rgb = RGBColor(160, 160, 160)
 
     # -------------------------------------------------------------
@@ -209,11 +229,11 @@ def build_formatted_paper():
     # -------------------------------------------------------------
     p_title = doc.add_paragraph()
     p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_title.paragraph_format.space_before = Pt(20)
-    p_title.paragraph_format.space_after = Pt(14)
+    p_title.paragraph_format.space_before = Pt(16)
+    p_title.paragraph_format.space_after = Pt(12)
     run_title = p_title.add_run("Evaluating a Parameter-Free Quantum Fidelity Kernel for Text Security Under Representation and Domain Shift")
     run_title.font.name = "Calibri"
-    run_title.font.size = Pt(18)
+    run_title.font.size = Pt(17)
     run_title.font.bold = True
     run_title.font.color.rgb = RGBColor(0, 0, 0)
 
@@ -221,11 +241,11 @@ def build_formatted_paper():
     # ABSTRACT
     # -------------------------------------------------------------
     p_abs_h = doc.add_paragraph()
-    p_abs_h.paragraph_format.space_before = Pt(6)
+    p_abs_h.paragraph_format.space_before = Pt(4)
     p_abs_h.paragraph_format.space_after = Pt(2)
     r_abs_h = p_abs_h.add_run("Abstract")
     r_abs_h.font.name = "Calibri"
-    r_abs_h.font.size = Pt(11)
+    r_abs_h.font.size = Pt(10.5)
     r_abs_h.font.bold = True
 
     add_body_p(
@@ -237,7 +257,7 @@ def build_formatted_paper():
         doc,
         "quantum machine learning, quantum kernel methods, text classification, email phishing, SMS spam, Hilbert space geometry, domain adaptation, practical equivalence testing",
         bold_prefix="Keywords: ",
-        space_after=8
+        space_after=6
     )
 
     # -------------------------------------------------------------
@@ -272,7 +292,7 @@ def build_formatted_paper():
 
     # Figure 1: Pipeline Overview
     fig1_path = os.path.join(PROJECT_ROOT, "results", "exp39_paper", "figures", "figure_1_experimental_framework.png")
-    add_figure_with_caption(doc, fig1_path, 1, "Conceptual Overview of the Controlled Multi-Dataset Text Security Benchmark and Experimental Pipeline (Multi-corpus ingestion -> Leakage-safe feature extraction -> Low-dimensional projection -> Tripartite classifier evaluation -> 10-seed inferential testing).")
+    add_figure_with_caption(doc, fig1_path, 1, "Conceptual Overview of the Controlled Multi-Dataset Text Security Benchmark and Experimental Pipeline (Multi-corpus ingestion -> Leakage-safe feature extraction -> Low-dimensional projection -> Tripartite classifier evaluation -> 10-seed inferential testing).", width_in=4.8)
 
     add_heading_2(doc, "1.3 Research Hypotheses (H1–H6)")
     add_body_p(
@@ -295,7 +315,7 @@ def build_formatted_paper():
         "The closest prior work falls into several groups: quantum kernel theory [18,20,32,37], quantum natural language processing [9,14,15,24,28,35], QML for cybersecurity and phishing detection [2,5,6,17,19,31,33], and classical text baselines [8,10,11,13,27,29,36,38]. Table 1 groups the literature by their primary focus and structural assumptions."
     )
 
-    # Table 1: Literature Taxonomy
+    # Table 1: Literature Taxonomy (Total width = 6.4 in)
     t1_headers = ["Literature Category", "Core Mechanism", "Representation Paradigm", "Key Representative Venues"]
     t1_data = [
         ["Quantum Kernel Theory", "Hilbert space mapping via unitary state preparation", "Synthetic / Group-theoretic distributions", "Nature '19 [18], PRL '19 [32], Nat Comm '21 [20]"],
@@ -305,7 +325,7 @@ def build_formatted_paper():
         ["Applied QML Cybersecurity", "Quantum classifiers applied to phishing/intrusion", "Tabular features / Small text splits (single seed)", "IEEE QPAIN '26 [19], MAKE '26 [6], ISACC '25 [33]"],
         ["Multi-Dataset Benchmarking", "Controlled matched baselines across multiple corpora", "Sparse TF-IDF + Dense Contextual Embeddings", "This Work (Exp 23–47)"]
     ]
-    add_table_with_caption(doc, 1, "Literature Positioning and Methodological Taxonomy.", t1_headers, t1_data, col_widths=[1.5, 1.8, 1.6, 1.6])
+    add_table_with_caption(doc, 1, "Literature Positioning and Methodological Taxonomy.", t1_headers, t1_data, col_widths=[1.3, 1.8, 1.5, 1.8], font_size=8.0)
 
     add_body_p(
         doc,
@@ -351,8 +371,8 @@ def build_formatted_paper():
         "To eliminate subtle sources of data leakage and ensure reproducibility, we ran the same eight data-hygiene checks across all models (Table 2)."
     )
 
-    # Table 2: Eight-Point Audit
-    t2_headers = ["Audit Item", "Verification Protocol & Invariant", "Verification Status"]
+    # Table 2: Eight-Point Audit (Total width = 6.4 in)
+    t2_headers = ["Audit Item", "Verification Protocol & Invariant", "Status"]
     t2_data = [
         ["1. Candidate Sample Parity", "Identical train, validation, and test arrays evaluated per seed", "PASS"],
         ["2. Target Label Parity", "Ground-truth positive/negative labels strictly identical across all models", "PASS"],
@@ -363,7 +383,7 @@ def build_formatted_paper():
         ["7. Domain Holdout Blindness", "Zero source-domain labels or target adaptation flags provided during training", "PASS"],
         ["8. Deterministic Seed Control", "Exact PRNG seed suite S = {42, 123, ..., 2021} applied to all pipeline stages", "PASS"]
     ]
-    add_table_with_caption(doc, 2, "Eight-Point Data Hygiene and Causality Verification Protocol.", t2_headers, t2_data, col_widths=[1.8, 3.7, 1.0])
+    add_table_with_caption(doc, 2, "Eight-Point Data Hygiene and Causality Verification Protocol.", t2_headers, t2_data, col_widths=[1.6, 4.0, 0.8], font_size=8.0)
 
     # -------------------------------------------------------------
     # SECTION 4: BENCHMARK CORPORA AND ACCOUNTING
@@ -374,15 +394,15 @@ def build_formatted_paper():
         "To prevent ambiguity regarding dataset sizes and class prevalences, we explicitly define four counting tiers: (a) raw archived records, (b) usable cleaned records, (c) source repository distributions, and (d) canonical controlled experimental subsets (Table 3)."
     )
 
-    # Table 3: Corpus Characteristics
-    t3_headers = ["Corpus", "Raw Records", "Usable Cleaned", "Raw Pos. %", "Exp. Subset (N)", "Train / Val / Test", "Exp. Pos. %", "Median Length", "Source Domain"]
+    # Table 3: Corpus Characteristics (Total width = 6.4 in)
+    t3_headers = ["Corpus", "Raw Records", "Usable Cleaned", "Raw Pos. %", "Exp. Subset (N)", "Train / Val / Test", "Exp. Pos. %", "Source Domain"]
     t3_data = [
-        ["SMS Spam", "5,574", "5,572", "13.41%", "5,572", "3,343 / 1,114 / 1,115", "13.41%", "~62 chars", "Single-source mobile [3]"],
-        ["CEAS 2008", "39,154", "39,154", "55.78%", "15,000*", "10,000 / 2,500 / 2,500", "18.90%", "~596 chars", "Phishing/Ham mix"],
-        ["MeAJOR Archive", "108,685", "108,684", "44.20%", "15,000*", "10,000 / 2,500 / 2,500", "19.33%", "~839 chars", "Multi-source (TREC 5/6/7)"],
-        ["TOTAL", "153,413", "153,410", "—", "35,572", "23,343 / 6,114 / 6,115", "—", "—", "3 Audited Security Corpora"]
+        ["SMS Spam", "5,574", "5,572", "13.41%", "5,572", "3,343 / 1,114 / 1,115", "13.41%", "Single-source mobile [3]"],
+        ["CEAS 2008", "39,154", "39,154", "55.78%", "15,000*", "10,000 / 2,500 / 2,500", "18.90%", "Phishing/Ham mix"],
+        ["MeAJOR Archive", "108,685", "108,684", "44.20%", "15,000*", "10,000 / 2,500 / 2,500", "19.33%", "Multi-source (TREC 5/6/7)"],
+        ["TOTAL", "153,413", "153,410", "—", "35,572", "23,343 / 6,114 / 6,115", "—", "3 Audited Security Corpora"]
     ]
-    add_table_with_caption(doc, 3, "Benchmark Corpus Characteristics, Accounting Tiers, and Split Partitions. Asterisk denotes controlled canonical experimental subsets created via stratified sub-sampling to establish uniform evaluation budgets.", t3_headers, t3_data, col_widths=[1.1, 0.7, 0.7, 0.6, 0.7, 1.1, 0.6, 0.6, 1.1])
+    add_table_with_caption(doc, 3, "Benchmark Corpus Characteristics, Accounting Tiers, and Split Partitions. Asterisk denotes controlled canonical experimental subsets.", t3_headers, t3_data, col_widths=[1.0, 0.7, 0.75, 0.65, 0.75, 1.15, 0.65, 0.75], font_size=7.5)
 
     # -------------------------------------------------------------
     # SECTION 5: EXPERIMENTAL EVALUATION AND RESULTS
@@ -395,8 +415,8 @@ def build_formatted_paper():
         "Table 4 presents the empirical audit of all eight classical machine learning models across the three corpora under both full 50,000-dimensional TF-IDF and matched 8D TruncatedSVD representations across 10 random seeds."
     )
 
-    # Table 4: Classical Audit
-    t4_headers = ["Corpus", "Model Architecture", "Full TF-IDF F1", "Full PR-AUC", "Full ROC-AUC", "8D SVD F1", "8D PR-AUC", "8D ROC-AUC", "Train Time"]
+    # Table 4: Classical Audit (Total width = 6.4 in, 9 cols)
+    t4_headers = ["Corpus", "Model Architecture", "Full F1", "Full PR", "Full ROC", "8D F1", "8D PR", "8D ROC", "Train Time"]
     t4_data = [
         ["SMS Spam", "Linear SVM", "0.9559 ± 0.000", "0.9822", "0.9931", "0.8273 ± 0.011", "0.8895", "0.9816", "0.03 s"],
         ["SMS Spam", "Matched RBF SVM", "0.9498 ± 0.000", "0.9829", "0.9927", "0.8156 ± 0.012", "0.8767", "0.9793", "1.53 s"],
@@ -426,10 +446,10 @@ def build_formatted_paper():
         ["MeAJOR", "Multinomial NB", "0.9481 ± 0.000", "0.9915", "0.9924", "0.7258 ± 0.005", "0.7870", "0.8195", "0.01 s"],
         ["MeAJOR", "k-NN (k=5)", "0.9532 ± 0.000", "0.9844", "0.9894", "0.8870 ± 0.003", "0.9459", "0.9581", "0.02 s"]
     ]
-    add_table_with_caption(doc, 4, "Complete Classical Baseline Audit across Datasets (Full TF-IDF vs Matched 8D SVD, Mean ± SD across 10 Seeds).", t4_headers, t4_data, col_widths=[0.9, 1.1, 0.8, 0.7, 0.7, 0.8, 0.7, 0.7, 0.6])
+    add_table_with_caption(doc, 4, "Complete Classical Baseline Audit across Datasets (Full TF-IDF vs Matched 8D SVD, Mean ± SD across 10 Seeds).", t4_headers, t4_data, col_widths=[0.75, 1.15, 0.65, 0.55, 0.55, 0.75, 0.55, 0.55, 0.9], font_size=7.2)
 
     fig2_path = os.path.join(PROJECT_ROOT, "results", "exp45", "figures", "fig1_classical_f1_across_datasets.png")
-    add_figure_with_caption(doc, fig2_path, 2, "Empirical Performance of Eight Classical Machine Learning Algorithms Across Datasets (Full 50k TF-IDF vs Matched 8D SVD). Linear SVM dominates full text, while linear compression imposes an identical 10–13 percentage point penalty across all models.")
+    add_figure_with_caption(doc, fig2_path, 2, "Empirical Performance of Eight Classical Machine Learning Algorithms Across Datasets (Full 50k TF-IDF vs Matched 8D SVD). Linear SVM dominates full text, while linear compression imposes an identical 10–13 percentage point penalty across all models.", width_in=4.8)
 
     add_heading_2(doc, "5.2 In-Distribution Model Comparison & TOST Practical Equivalence (Result 1)")
     add_body_p(
@@ -438,7 +458,7 @@ def build_formatted_paper():
         "The mean paired difference against matched RBF is ΔF1 = +0.0046 ± 0.0027 (+0.46 percentage points, p = 0.0016). Under TOST practical equivalence testing at ε = 0.01, both null hypotheses H_0^- and H_0^+ are strictly rejected (p < 0.001), confirming practical equivalence. When evaluated against the validation-tuned RBF baseline, the delta narrows to ΔF1 = +0.0012 ± 0.0025 (p = 0.1840), demonstrating complete statistical parity."
     )
 
-    # Table 5: Canonical Comparison
+    # Table 5: Canonical Comparison (Total width = 6.4 in)
     t5_headers = ["Model Architecture", "Test F1 (Mean ± SD)", "PR-AUC", "ROC-AUC", "Accuracy", "TOST Status (ε=0.01)"]
     t5_data = [
         ["Linear SVM (Matched 8D SVD)", "0.8445 ± 0.0022", "0.9315", "0.9404", "0.9400", "Linear Baseline"],
@@ -446,7 +466,7 @@ def build_formatted_paper():
         ["Classical Tuned RBF (8D)", "0.8742 ± 0.0028", "0.9450", "0.9560", "0.9518", "Tuned Comparator"],
         ["Quantum Fidelity Kernel (8D)", "0.8754 ± 0.0029", "0.9372", "0.9515", "0.9523", "Practically Equivalent"]
     ]
-    add_table_with_caption(doc, 5, "Canonical In-Distribution Model Comparison on MeAJOR (Matched 8D SVD, N=10 Seeds).", t5_headers, t5_data, col_widths=[2.0, 1.2, 0.8, 0.8, 0.8, 1.4])
+    add_table_with_caption(doc, 5, "Canonical In-Distribution Model Comparison on MeAJOR (Matched 8D SVD, N=10 Seeds).", t5_headers, t5_data, col_widths=[1.9, 1.0, 0.7, 0.7, 0.7, 1.4], font_size=8.0)
 
     add_heading_2(doc, "5.3 Dimensionality Scaling Trajectory: d in [2, 12] (Result 2)")
     add_body_p(
@@ -454,22 +474,22 @@ def build_formatted_paper():
         "We sweep dimensionality across d ∈ {2, 4, 6, 8, 10, 12} (Table 6, Figures 3 and 4). Expanding dimensionality from 2D to 12D produces a monotonic +41.7% relative gain in quantum F1 (0.6447 -> 0.9137), closely tracking classical RBF recovery (0.6735 -> 0.9123). At 12 dimensions, the performance gap narrows to ΔF1 = +0.0014 ± 0.0040, with the 95% bootstrap confidence interval [-0.0010, +0.0037] spanning zero (p = 0.2824)."
     )
 
-    # Table 6: Dimensionality Scaling
-    t6_headers = ["Dim (d)", "Quantum F1", "Classical RBF F1", "Tuned RBF F1", "Paired ΔF1 (Q - Matched)", "95% Bootstrap CI", "Permutation p", "TOST Status"]
+    # Table 6: Dimensionality Scaling (Total width = 6.4 in)
+    t6_headers = ["Dim (d)", "Quantum F1", "Classical RBF", "Tuned RBF", "Paired ΔF1 (Q - Matched)", "Permutation p", "TOST Status"]
     t6_data = [
-        ["2D", "0.6447 ± 0.0038", "0.6735 ± 0.0031", "0.6780 ± 0.0029", "-0.0288 (-2.88 pp)", "[-0.0310, -0.0264]", "p < 0.001", "Classical Superior"],
-        ["4D", "0.7876 ± 0.0030", "0.7918 ± 0.0025", "0.7954 ± 0.0024", "-0.0042 (-0.42 pp)", "[-0.0058, -0.0024]", "p = 0.0180", "Equivalent (ε=0.01)"],
-        ["6D", "0.8253 ± 0.0026", "0.8254 ± 0.0022", "0.8291 ± 0.0021", "-0.0001 (-0.01 pp)", "[-0.0018, +0.0017]", "p = 0.9410", "Equivalent (ε=0.01)"],
-        ["8D", "0.8754 ± 0.0029", "0.8709 ± 0.0030", "0.8742 ± 0.0028", "+0.0046 (+0.46 pp)", "[+0.0030, +0.0061]", "p = 0.0016", "Equivalent (ε=0.01)"],
-        ["10D", "0.9023 ± 0.0034", "0.8967 ± 0.0049", "0.9015 ± 0.0038", "+0.0057 (+0.57 pp)", "[+0.0032, +0.0081]", "p = 0.0052", "Equivalent (ε=0.01)"],
-        ["12D", "0.9137 ± 0.0046", "0.9123 ± 0.0023", "0.9148 ± 0.0020", "+0.0014 (+0.14 pp)", "[-0.0010, +0.0037]", "p = 0.2824", "Strict Parity (ε=0.005)"]
+        ["2D", "0.6447 ± 0.0038", "0.6735 ± 0.0031", "0.6780 ± 0.0029", "-0.0288 (-2.88 pp)", "p < 0.001", "Classical Superior"],
+        ["4D", "0.7876 ± 0.0030", "0.7918 ± 0.0025", "0.7954 ± 0.0024", "-0.0042 (-0.42 pp)", "p = 0.0180", "Equivalent (ε=0.01)"],
+        ["6D", "0.8253 ± 0.0026", "0.8254 ± 0.0022", "0.8291 ± 0.0021", "-0.0001 (-0.01 pp)", "p = 0.9410", "Equivalent (ε=0.01)"],
+        ["8D", "0.8754 ± 0.0029", "0.8709 ± 0.0030", "0.8742 ± 0.0028", "+0.0046 (+0.46 pp)", "p = 0.0016", "Equivalent (ε=0.01)"],
+        ["10D", "0.9023 ± 0.0034", "0.8967 ± 0.0049", "0.9015 ± 0.0038", "+0.0057 (+0.57 pp)", "p = 0.0052", "Equivalent (ε=0.01)"],
+        ["12D", "0.9137 ± 0.0046", "0.9123 ± 0.0023", "0.9148 ± 0.0020", "+0.0014 (+0.14 pp)", "p = 0.2824", "Strict Parity (ε=0.005)"]
     ]
-    add_table_with_caption(doc, 6, "Dimensionality Scaling Profile on MeAJOR IID (N=10 Seeds).", t6_headers, t6_data, col_widths=[0.6, 1.0, 1.0, 1.0, 1.2, 1.1, 0.8, 1.0])
+    add_table_with_caption(doc, 6, "Dimensionality Scaling Profile on MeAJOR IID (N=10 Seeds).", t6_headers, t6_data, col_widths=[0.6, 1.0, 1.0, 1.0, 1.2, 0.7, 0.9], font_size=7.5)
 
     fig3_path = os.path.join(PROJECT_ROOT, "results", "exp39_paper", "figures", "figure_2_iid_f1_vs_dimensionality.png")
     fig4_path = os.path.join(PROJECT_ROOT, "results", "exp39_paper", "figures", "figure_3_quantum_minus_rbf_vs_dimensionality.png")
-    add_figure_with_caption(doc, fig3_path, 3, "In-Distribution Dimensionality Scaling Trajectory (2D to 12D) on MeAJOR. Mean test F1 across 10 computational seeds with 95% bootstrap confidence bands.")
-    add_figure_with_caption(doc, fig4_path, 4, "Paired Quantum Minus Classical RBF Difference (ΔF1) vs Dimensionality with Pre-Registered Practical Equivalence Zone (ε = ±0.01). Shaded region denotes the practical equivalence boundary.")
+    add_figure_with_caption(doc, fig3_path, 3, "In-Distribution Dimensionality Scaling Trajectory (2D to 12D) on MeAJOR. Mean test F1 across 10 computational seeds with 95% bootstrap confidence bands.", width_in=4.8)
+    add_figure_with_caption(doc, fig4_path, 4, "Paired Quantum Minus Classical RBF Difference (ΔF1) vs Dimensionality with Pre-Registered Practical Equivalence Zone (ε = ±0.01). Shaded region denotes the practical equivalence boundary.", width_in=4.8)
 
     add_heading_2(doc, "5.4 Upstream Representation Screening & Ranking Inversions (Result 3)")
     add_body_p(
@@ -480,7 +500,7 @@ def build_formatted_paper():
         "This evidence is consistent with the hypothesis that dense continuous sentence embeddings cluster text into tight metric neighborhoods that undergo destructive phase-wrapping under cyclic Pauli-Z gates, establishing upstream text representation as a dominant experimental factor."
     )
 
-    # Table 7: Representation Ablation
+    # Table 7: Representation Ablation (Total width = 6.4 in)
     t7_headers = ["Corpus", "Upstream Text Representation", "Quantum F1", "Classical RBF F1", "Paired Difference (Q - RBF)", "Representation Impact"]
     t7_data = [
         ["CEAS 2008 (8D)", "Sparse TF-IDF + TruncatedSVD", "0.9736", "0.9641", "+0.0095 (+0.95 pp)", "Modest non-linear quantum expansion"],
@@ -490,10 +510,10 @@ def build_formatted_paper():
         ["SMS Spam (8D)", "Dense all-MiniLM-L6-v2", "0.7707", "0.7930", "-0.0223 (-2.23 pp)", "Moderate gap reduction"],
         ["SMS Spam (8D)", "Dense all-mpnet-base-v2", "0.3756", "0.9045", "-0.5288 (-52.88 pp)", "Catastrophic Phase-Wrapping Collapse"]
     ]
-    add_table_with_caption(doc, 7, "Upstream Representation Screening and Ranking Reversals on CEAS 2008 and SMS Spam.", t7_headers, t7_data, col_widths=[1.1, 1.8, 0.8, 0.8, 1.2, 1.5])
+    add_table_with_caption(doc, 7, "Upstream Representation Screening and Ranking Reversals on CEAS 2008 and SMS Spam.", t7_headers, t7_data, col_widths=[0.95, 1.7, 0.7, 0.7, 0.95, 1.4], font_size=7.5)
 
     fig5_path = os.path.join(PROJECT_ROOT, "results", "exp39_paper", "figures", "figure_6_representation_interaction.png")
-    add_figure_with_caption(doc, fig5_path, 5, "Upstream Representation Interaction and Ranking Inversion on CEAS 2008 and SMS Spam. Switching from sparse lexical TF-IDF to dense contextual transformers inverts quantum-vs-classical performance rankings by up to 52.88 percentage points.")
+    add_figure_with_caption(doc, fig5_path, 5, "Upstream Representation Interaction and Ranking Inversion on CEAS 2008 and SMS Spam. Switching from sparse lexical TF-IDF to dense contextual transformers inverts quantum-vs-classical performance rankings by up to 52.88 percentage points.", width_in=4.8)
 
     add_heading_2(doc, "5.5 Cross-Source Domain Shift Generalization: TREC 2007 -> TREC 2005/2006 (Result 4)")
     add_body_p(
@@ -505,17 +525,17 @@ def build_formatted_paper():
         "The matched classical RBF kernel significantly outperforms the quantum kernel under source shift, and the performance deficit exceeds the practical equivalence threshold (ε = 0.01)."
     )
 
-    # Table 8: Domain Holdout
+    # Table 8: Domain Holdout (Total width = 6.4 in)
     t8_headers = ["Model Architecture", "In-Distribution F1", "Domain Holdout F1", "Absolute Drop (Δ)", "Relative Drop (%)", "PR-AUC", "ROC-AUC"]
     t8_data = [
         ["Linear SVM (8D SVD)", "0.8445 ± 0.0022", "0.6622 ± 0.0142", "-0.1823", "-21.6%", "0.7812", "0.7950"],
         ["Classical RBF (8D SVD)", "0.8709 ± 0.0030", "0.6913 ± 0.0161", "-0.1796", "-20.6%", "0.8115", "0.8240"],
         ["Quantum Kernel (8D SVD)", "0.8754 ± 0.0029", "0.6680 ± 0.0094", "-0.2074", "-23.7%", "0.7890", "0.8010"]
     ]
-    add_table_with_caption(doc, 8, "Cross-Source Domain Holdout Performance (MeAJOR Direction B, N=10 Seeds).", t8_headers, t8_data, col_widths=[1.8, 1.1, 1.1, 1.0, 0.9, 0.8, 0.8])
+    add_table_with_caption(doc, 8, "Cross-Source Domain Holdout Performance (MeAJOR Direction B, N=10 Seeds).", t8_headers, t8_data, col_widths=[1.6, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8], font_size=7.5)
 
     fig6_path = os.path.join(PROJECT_ROOT, "results", "exp39_paper", "figures", "figure_4_iid_vs_source_holdout.png")
-    add_figure_with_caption(doc, fig6_path, 6, "In-Distribution vs Cross-Source Domain Holdout (Direction B: TREC 2007 -> TREC 2005/2006). The parameter-free quantum fidelity kernel suffers greater performance degradation under source shift than matched classical RBF.")
+    add_figure_with_caption(doc, fig6_path, 6, "In-Distribution vs Cross-Source Domain Holdout (Direction B: TREC 2007 -> TREC 2005/2006). The parameter-free quantum fidelity kernel suffers greater performance degradation under source shift than matched classical RBF.", width_in=4.8)
 
     add_heading_2(doc, "5.6 Feature Space Geometry Diagnostics (Result 5)")
     add_body_p(
@@ -529,8 +549,8 @@ def build_formatted_paper():
 
     fig7_path = os.path.join(PROJECT_ROOT, "results", "exp39_paper", "figures", "figure_7_geometry_correlation_vs_dimensionality.png")
     fig8_path = os.path.join(PROJECT_ROOT, "results", "exp39_paper", "figures", "figure_8_entropy_vs_kernel_diversity.png")
-    add_figure_with_caption(doc, fig7_path, 7, "Quantum vs Classical RBF Off-Diagonal Gram Matrix Correlation Across Dimensionality (2D to 16D). Correlation remains moderate (r ≈ 0.55–0.65), reflecting structural divergence between Hilbert fidelity and Gaussian RKHS metric decay.")
-    add_figure_with_caption(doc, fig8_path, 8, "Single-State Basis Dispersion Entropy vs Pairwise Gram Matrix Diversity. Strong negative correlation (r = -0.78 to -0.83) across SMS, CEAS, and MeAJOR demonstrates that higher statevector dispersion collapses pairwise kernel variance.")
+    add_figure_with_caption(doc, fig7_path, 7, "Quantum vs Classical RBF Off-Diagonal Gram Matrix Correlation Across Dimensionality (2D to 16D). Correlation remains moderate (r ≈ 0.55–0.65), reflecting structural divergence between Hilbert fidelity and Gaussian RKHS metric decay.", width_in=4.8)
+    add_figure_with_caption(doc, fig8_path, 8, "Single-State Basis Dispersion Entropy vs Pairwise Gram Matrix Diversity. Strong negative correlation (r = -0.78 to -0.83) across SMS, CEAS, and MeAJOR demonstrates that higher statevector dispersion collapses pairwise kernel variance.", width_in=4.8)
 
     add_heading_2(doc, "5.7 Computational Simulation Cost & Memory Limits (Result 6)")
     add_body_p(
@@ -541,7 +561,7 @@ def build_formatted_paper():
         "• 16 Dimensions (Memory Boundary Test): Classical statevector simulation of 16 qubits on 10,000 samples requires allocating 2^16 = 65,536 complex amplitudes per sample, exceeding the workstation's 10.5 GB contiguous host memory ceiling. Classical RBF completes in 2.1s using minimal memory (<1 MB)."
     )
 
-    # Table 9: Runtime & RAM
+    # Table 9: Runtime & RAM (Total width = 6.4 in)
     t9_headers = ["Dim (d)", "Quantum Time (s)", "Classical RBF Time (s)", "Runtime Overhead", "Peak Quantum RAM", "Feasibility Status"]
     t9_data = [
         ["2 Qubits", "3.4 s", "1.3 s", "2.6x", "142 MB", "Fully Feasible"],
@@ -550,10 +570,10 @@ def build_formatted_paper():
         ["12 Qubits", "108.8 s", "1.7 s", "64.0x", "6.4 GB", "Heavy Simulation"],
         ["16 Qubits", "Infeasible", "2.1 s", "—", ">10.5 GB", "Out-of-Memory Boundary"]
     ]
-    add_table_with_caption(doc, 9, "Computational Complexity, Memory Footprint, and Execution Latency Profile on 10,000 Samples.", t9_headers, t9_data, col_widths=[1.0, 1.2, 1.2, 1.1, 1.1, 1.4])
+    add_table_with_caption(doc, 9, "Computational Complexity, Memory Footprint, and Execution Latency Profile on 10,000 Samples.", t9_headers, t9_data, col_widths=[0.85, 1.0, 1.0, 0.95, 1.1, 1.5], font_size=8.0)
 
     fig9_path = os.path.join(PROJECT_ROOT, "results", "exp39_paper", "figures", "figure_5_runtime_vs_dimensionality.png")
-    add_figure_with_caption(doc, fig9_path, 9, "Computational Simulation Wall-Clock Execution Time and Peak RAM Footprint on 10,000 Samples. Simulating the 12-qubit fidelity kernel incurs a 64x execution penalty over classical RBF, with 16D exceeding workstation RAM limits.")
+    add_figure_with_caption(doc, fig9_path, 9, "Computational Simulation Wall-Clock Execution Time and Peak RAM Footprint on 10,000 Samples. Simulating the 12-qubit fidelity kernel incurs a 64x execution penalty over classical RBF, with 16D exceeding workstation RAM limits.", width_in=4.8)
 
     # -------------------------------------------------------------
     # SECTION 6: DISCUSSION
@@ -635,13 +655,13 @@ def build_formatted_paper():
     ]
     for r in references:
         p_ref = doc.add_paragraph()
-        p_ref.paragraph_format.left_indent = Inches(0.3)
-        p_ref.paragraph_format.first_line_indent = Inches(-0.3)
-        p_ref.paragraph_format.space_after = Pt(3)
-        p_ref.paragraph_format.line_spacing = 1.1
+        p_ref.paragraph_format.left_indent = Inches(0.25)
+        p_ref.paragraph_format.first_line_indent = Inches(-0.25)
+        p_ref.paragraph_format.space_after = Pt(2.5)
+        p_ref.paragraph_format.line_spacing = 1.05
         run_r = p_ref.add_run(r)
         run_r.font.name = "Calibri"
-        run_r.font.size = Pt(8.5)
+        run_r.font.size = Pt(8.0)
         run_r.font.color.rgb = RGBColor(40, 40, 40)
 
     # -------------------------------------------------------------
@@ -688,7 +708,7 @@ def build_formatted_paper():
     add_body_p(
         doc,
         "Revision note. This version was formatted for single-column structural consistency, empirical rigor, and an authorial academic voice matching top-tier empirical benchmarking venues. Experimental values and scientific scope were preserved from authoritative logs.",
-        space_after=14
+        space_after=12
     )
 
     # Save to DOCX files
