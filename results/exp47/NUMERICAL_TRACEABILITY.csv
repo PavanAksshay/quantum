@@ -1,0 +1,20 @@
+Metric_Description,Reported_Value,Source_File,Verified
+MeAJOR IID 8D Quantum F1,0.8754 ± 0.0029,results/exp40_final/exp40_statistical_summary.csv,YES
+MeAJOR IID 8D RBF F1,0.8709 ± 0.0030,results/exp40_final/exp40_statistical_summary.csv,YES
+MeAJOR IID 8D Paired Difference,+0.0046 (p = 0.0016),results/exp40_final/exp40_statistical_summary.csv,YES
+MeAJOR IID 10D Quantum F1,0.9023 ± 0.0034,results/exp40_final/exp40_statistical_summary.csv,YES
+MeAJOR IID 10D RBF F1,0.8967 ± 0.0049,results/exp40_final/exp40_statistical_summary.csv,YES
+MeAJOR IID 12D Quantum F1,0.9137 ± 0.0046,results/exp40_final/exp40_statistical_summary.csv,YES
+MeAJOR IID 12D RBF F1,0.9123 ± 0.0023,results/exp40_final/exp40_statistical_summary.csv,YES
+MeAJOR IID 12D Paired Difference,+0.0014 (p = 0.2824),results/exp40_final/exp40_statistical_summary.csv,YES
+MeAJOR Direction B Quantum F1,0.6680 ± 0.0094,results/exp40_final/exp40_statistical_summary.csv,YES
+MeAJOR Direction B RBF F1,0.6913 ± 0.0161,results/exp40_final/exp40_statistical_summary.csv,YES
+MeAJOR Direction B Difference,"-0.0233 (p = 0.0046, BH p = 0.0069)",results/exp40_final/exp40_statistical_summary.csv,YES
+CEAS 8D TF-IDF Quantum F1,"0.9736 (RBF: 0.9641, Δ = +0.95 pp)",results/exp42/exp42_summary.csv,YES
+CEAS 8D RoBERTa Quantum F1,"0.9601 (RBF: 0.9896, Δ = -2.95 pp)",results/exp42/exp42_summary.csv,YES
+SMS 8D MPNet Quantum F1,"0.3756 (RBF: 0.9045, Δ = -52.88 pp)",results/exp42/exp42_summary.csv,YES
+SMS Full TF-IDF Linear SVM F1,0.9559 (Train Time: 0.03s),results/exp45/classical_baseline_summary.csv,YES
+CEAS Full TF-IDF Linear SVM F1,0.9954 (Train Time: 0.15s),results/exp45/classical_baseline_summary.csv,YES
+MeAJOR Full TF-IDF Linear SVM F1,0.9721 (Train Time: 0.18s),results/exp45/classical_baseline_summary.csv,YES
+12D Classical Simulation Runtime,108.8s (Quantum) vs 1.7s (RBF),results/exp43/exp43_runtime.csv,YES
+Entropy vs Diversity Correlation,r = -0.7822 to -0.8257 across corpora,results/exp43/exp43_geometry_associations.csv,YES
