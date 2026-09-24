@@ -1,26 +1,33 @@
----
-title: Quantum Text Security Research Platform
-emoji: ⚛️
-colorFrom: indigo
-colorTo: blue
-sdk: gradio
-app_file: server.py
-pinned: false
----
-
 # ⚛️ Evaluating a Parameter-Free Quantum Fidelity Kernel for Text Security
 ### *Under Representation, Geometry, Generalization, and Computational Cost*
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel%20Frontend-blue?style=for-the-badge&logo=vercel)](https://quantum-three-hazel.vercel.app)
-[![API Status](https://img.shields.io/badge/API%20Backend-FastAPI%20%2B%20PyTorch-green?style=for-the-badge&logo=fastapi)](https://quantum-backend.onrender.com/docs)
-[![Paper PDF](https://img.shields.io/badge/Paper-10--Page%20Preprint%20PDF-red?style=for-the-badge&logo=adobeacrobatreader)](results/exp47/SAMPLE_PAPER.pdf)
+[![Live Demo](https://img.shields.io/badge/Live%20Frontend-Vercel-blue?style=for-the-badge&logo=vercel)](https://quantum-three-hazel.vercel.app)
+[![API Backend](https://img.shields.io/badge/API%20Backend-Render%20(FastAPI)-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://quantum-backend-uxm8.onrender.com/docs)
+[![API Health](https://img.shields.io/badge/API%20Health-Online-success?style=for-the-badge)](https://quantum-backend-uxm8.onrender.com/api/health)
+[![Paper PDF](https://img.shields.io/badge/Paper-Preprint%20PDF-red?style=for-the-badge&logo=adobeacrobatreader)](results/exp47/SAMPLE_PAPER.pdf)
+[![Paper DOCX](https://img.shields.io/badge/Paper-Word%20DOCX-2B579A?style=for-the-badge&logo=microsoftword&logoColor=white)](results/exp47/SAMPLE_RESEARCH_PAPER.docx)
 [![License](https://img.shields.io/badge/License-MIT-purple?style=for-the-badge)](LICENSE)
+
+---
+
+## 🌐 Live Deployments & Interactive Platform
+
+The Quantum Text Security Research Platform is deployed as a decoupled, full-stack cloud application:
+
+* **🚀 Frontend (React + Vite SPA)**: Hosted on **Vercel** at [https://quantum-three-hazel.vercel.app](https://quantum-three-hazel.vercel.app)
+  * Interactive **Representation Lab** (Encoder screening, cosine clustering vs Hilbert dispersion).
+  * Real-time **Multi-Model Inference & Vector Inspector** (Linear SVM, RBF SVM, QSVC).
+  * In-distribution and out-of-distribution performance dashboards with full offline fallback data.
+* **⚡ Backend REST API (FastAPI + PyTorch)**: Hosted on **Render** at [https://quantum-backend-uxm8.onrender.com](https://quantum-backend-uxm8.onrender.com)
+  * **Interactive Swagger Documentation**: [https://quantum-backend-uxm8.onrender.com/docs](https://quantum-backend-uxm8.onrender.com/docs)
+  * **Health Check & Engine Status**: [https://quantum-backend-uxm8.onrender.com/api/health](https://quantum-backend-uxm8.onrender.com/api/health)
+  * **Live Endpoints**: `/api/predict`, `/api/statevector`, `/api/representations/candidates`, `/api/research/summary`
 
 ---
 
 ## 🔬 Research at a Glance
 
-This repository contains the complete experimental code, statistical verification pipelines, academic manuscript sources, and an interactive full-stack research platform for evaluating **parameter-free quantum fidelity kernels** (two-layer cyclic $ZZFeatureMap$) against **matched classical radial basis function (RBF) kernels** and an audited suite of **eight classical machine learning baselines** across three cybersecurity text corpora.
+This repository contains the complete experimental codebase, frozen dataset partitions, statistical verification pipelines, academic manuscript sources, and full-stack research platform for evaluating **parameter-free quantum fidelity kernels** (two-layer cyclic $ZZFeatureMap$) against **matched classical radial basis function (RBF) kernels** and an audited suite of **eight classical machine learning baselines** across three cybersecurity text corpora.
 
 ```
 ====================================================================================================
@@ -139,12 +146,13 @@ Equivalence Boundary:        ε = ±0.01 F1 (Two One-Sided Tests practical equiv
 ```
 quantum/
 ├── app/
-│   ├── api.py                     # FastAPI backend REST service
-│   ├── inference.py               # Live model inference (QSVC, RBF, Linear)
+│   ├── api.py                     # FastAPI REST API service (Deployed on Render)
+│   ├── model_engine.py            # Live inference engine (QSVC, RBF, Linear)
+│   ├── schemas/                   # Pydantic request/response schemas
 │   └── research/
 │       ├── registry.py            # Experiment and representation query registries
 │       └── research_store.py      # Authoritative frozen experimental data store
-├── frontend/
+├── frontend/                      # React + Vite UI (Deployed on Vercel)
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── RepresentationLab.jsx     # Encoder screening & geometry matrix
@@ -154,6 +162,12 @@ quantum/
 │   │   └── data/
 │   │       └── researchFallbackData.js   # 100% offline CDN research fallback
 │   └── package.json
+├── datasets/                      # Standardized benchmark datasets in CSV format
+│   ├── README.md                  # Complete dataset manifest & split schemas
+│   ├── sms_spam_raw.csv           # Full SMS Spam Collection (5,572 rows)
+│   ├── ceas_2008_raw.csv          # Full CEAS 2008 Email Archive (39,154 rows)
+│   ├── meajor_archive_raw.csv     # Multi-Source Email Archive (108,685 rows)
+│   └── ...                        # Frozen train / validation / test splits
 ├── experiments/
 │   ├── 39_multi_dataset_eval.py   # Multi-dataset 10-seed in-distribution sweep
 │   ├── 40_confirmation_experiments.py # Authoritative confirmation experiments
@@ -161,25 +175,24 @@ quantum/
 │   ├── 45_classical_baseline_audit.py # 480-run 8-classifier classical audit
 │   └── 46_manuscript_update.py    # Submission package generator
 ├── paper/
-│   ├── submission/
-│   │   ├── main.tex               # LaTeX research manuscript source
-│   │   ├── supplementary.tex      # Supplementary materials & mathematical proofs
-│   │   ├── references.bib         # 28-paper comprehensive bibliography
-│   │   └── figures/               # High-resolution vector PDF figures
+│   └── submission/
+│       ├── main.tex               # LaTeX research manuscript source
+│       ├── references.bib         # 28-paper comprehensive bibliography
+│       └── figures/               # High-resolution vector PDF figures
 ├── results/
 │   └── exp47/
 │       ├── SAMPLE_PAPER.pdf       # 10-page complete compiled PDF
+│       ├── SAMPLE_RESEARCH_PAPER.docx # Complete Word document with figures
 │       ├── SAMPLE_PAPER.tex       # Standalone paper LaTeX source
-│       ├── SAMPLE_PAPER.md        # Formatted markdown preprint version
-│       └── ...
-├── server.py                      # Gradio + FastAPI deployment entrypoint
+│       └── SAMPLE_PAPER.md        # Formatted markdown preprint version
+├── build_paper_docx_and_datasets.py # DOCX paper & CSV dataset exporter
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## 🚀 Quick Start & Reproduction
+## 🚀 Quick Start & Local Development
 
 ### 1. Environment Setup
 ```bash
@@ -195,7 +208,23 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Run Confirmation Experiments
+### 2. Run the Full-Stack Application Locally
+
+**Start the FastAPI Backend (Render parity):**
+```bash
+uvicorn app.api:app --host 127.0.0.1 --port 8000 --reload
+```
+Navigate to `http://127.0.0.1:8000/docs` to test the API endpoints.
+
+**Start the React Frontend (Vercel parity):**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Navigate to `http://localhost:5173` to explore the interactive dashboard.
+
+### 3. Run Confirmation Experiments
 ```bash
 # Execute 10-seed confirmation sweep (Exp 40)
 python3 experiments/40_confirmation_experiments.py
@@ -204,9 +233,13 @@ python3 experiments/40_confirmation_experiments.py
 python3 experiments/45_classical_baseline_audit.py
 ```
 
-### 3. Compile the Academic Paper PDF
+### 4. Build Paper Artifacts
 ```bash
+# Compile LaTeX PDF
 tectonic results/exp47/SAMPLE_PAPER.tex
+
+# Generate DOCX Manuscript & Export CSV Datasets
+python3 build_paper_docx_and_datasets.py
 ```
 
 ---
