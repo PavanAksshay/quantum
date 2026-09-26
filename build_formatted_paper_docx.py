@@ -712,12 +712,12 @@ def build_formatted_paper():
     )
 
     # Save to DOCX files
-    out_docx_1 = os.path.join(PROJECT_ROOT, "paper", "submission", "main.docx")
-    out_docx_2 = os.path.join(PROJECT_ROOT, "results", "exp47", "SAMPLE_RESEARCH_PAPER.docx")
+    out_docx_root = os.path.join(PROJECT_ROOT, "RESEARCH_PAPER.docx")
+    out_docx_sub = os.path.join(PROJECT_ROOT, "paper", "submission", "main.docx")
     
-    doc.save(out_docx_1)
-    doc.save(out_docx_2)
-    print(f"Successfully generated formatted DOCX papers at:\n - {out_docx_1}\n - {out_docx_2}")
+    doc.save(out_docx_root)
+    doc.save(out_docx_sub)
+    print(f"Successfully generated formatted DOCX papers at:\n - {out_docx_root}\n - {out_docx_sub}")
 
 if __name__ == "__main__":
     build_formatted_paper()
