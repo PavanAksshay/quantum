@@ -312,18 +312,18 @@ def build_formatted_paper():
     add_heading_1(doc, "2. Related Work and Positioning")
     add_body_p(
         doc,
-        "The closest prior work falls into several groups: quantum kernel theory [18,20,32,37], quantum natural language processing [9,14,15,24,28,35], QML for cybersecurity and phishing detection [2,5,6,17,19,31,33], and classical text baselines [8,10,11,13,27,29,36,38]. Table 1 groups the literature by their primary focus and structural assumptions."
+        "The closest prior work falls into several foundational groups: quantum kernel theory and speedups [1,16,18,20,23,32], expressivity and concentration phenomena [7,21,26,34,37], quantum natural language processing [9,14,15,24,28,35], applied QML for cybersecurity and threat detection [2,5,6,17,19,25,31,33], and classical text classification and distribution shift baselines [3,4,8,10,11,12,13,22,27,29,30,36,38]. Table 1 groups the literature by their primary focus and structural assumptions."
     )
 
     # Table 1: Literature Taxonomy (Total width = 6.4 in)
     t1_headers = ["Literature Category", "Core Mechanism", "Representation Paradigm", "Key Representative Venues"]
     t1_data = [
-        ["Quantum Kernel Theory", "Hilbert space mapping via unitary state preparation", "Synthetic / Group-theoretic distributions", "Nature '19 [18], PRL '19 [32], Nat Comm '21 [20]"],
-        ["Expressivity & Concentration", "Theoretical bounds on fidelity concentration & variance", "Global unparameterized statevectors", "Nat Comm '24 [37], PRL '24 [7], NeurIPS '21 [21]"],
+        ["Quantum Kernel Theory", "Hilbert space mapping via unitary state preparation", "Synthetic / Group-theoretic distributions", "Nature '19 [18], PRL '19 [32], Nat Phys '21 [23], Nat Comm '21 [20], npj Quantum Inf '22 [16]"],
+        ["Expressivity & Concentration", "Theoretical bounds on fidelity concentration & variance", "Global unparameterized statevectors", "Nat Comm '24 [37], PRL '24 [7], NeurIPS '21 [21], IEEE TQE '22 [34], PRX Quantum '23 [26]"],
         ["Structural QNLP", "Categorical DisCoCat grammars & ZX-calculus", "Syntactic parse trees (N < 500 sentences)", "QNLP '20 [9], QST '21 [24]"],
-        ["Statistical & Embedding QNLP", "Classical text embeddings fed to QSVC / VQC", "TF-IDF, Word2Vec, Pretrained Transformers", "CMES '26 [28], IEEE TQE '24 [15], Access '23 [35]"],
-        ["Applied QML Cybersecurity", "Quantum classifiers applied to phishing/intrusion", "Tabular features / Small text splits (single seed)", "IEEE QPAIN '26 [19], MAKE '26 [6], ISACC '25 [33]"],
-        ["Multi-Dataset Benchmarking", "Controlled matched baselines across multiple corpora", "Sparse TF-IDF + Dense Contextual Embeddings", "This Work (Exp 23–47)"]
+        ["Statistical & Embedding QNLP", "Classical text embeddings fed to QSVC / VQC", "TF-IDF, Word2Vec, Pretrained Transformers", "CMES '26 [28], IEEE TQE '24 [15], Access '23 [35], IEEE TQE '21 [14]"],
+        ["Applied QML Cybersecurity", "Quantum classifiers applied to phishing/intrusion", "Tabular features / Small text splits (single seed)", "IEEE QPAIN '26 [19], MAKE '26 [6], ISACC '25 [33], QMI '22 [31], IEEE Access '23 [5], PRResearch '20 [25]"],
+        ["Multi-Dataset Benchmarking", "Controlled matched baselines across multiple corpora", "Sparse TF-IDF + Dense Contextual Embeddings", "ACM TOPS '23 [4], TPAMI '26 [22], IEEE S&P '22 [30], This Work (Exp 23–47)"]
     ]
     add_table_with_caption(doc, 1, "Literature Positioning and Methodological Taxonomy.", t1_headers, t1_data, col_widths=[1.3, 1.8, 1.5, 1.8], font_size=8.0)
 
@@ -712,14 +712,12 @@ def build_formatted_paper():
     )
 
     # Save to DOCX files
-    out_docx_1 = os.path.join(PROJECT_ROOT, "results", "exp47", "SAMPLE_RESEARCH_PAPER.docx")
-    out_docx_2 = os.path.join(PROJECT_ROOT, "results", "exp47", "SAMPLE_PAPER.docx")
-    out_docx_3 = os.path.join(PROJECT_ROOT, "SAMPLE_RESEARCH_PAPER.docx")
+    out_docx_1 = os.path.join(PROJECT_ROOT, "paper", "submission", "main.docx")
+    out_docx_2 = os.path.join(PROJECT_ROOT, "results", "exp47", "SAMPLE_RESEARCH_PAPER.docx")
     
     doc.save(out_docx_1)
     doc.save(out_docx_2)
-    doc.save(out_docx_3)
-    print(f"Successfully generated formatted DOCX papers at:\n - {out_docx_1}\n - {out_docx_2}\n - {out_docx_3}")
+    print(f"Successfully generated formatted DOCX papers at:\n - {out_docx_1}\n - {out_docx_2}")
 
 if __name__ == "__main__":
     build_formatted_paper()

@@ -88,27 +88,32 @@ We state six testable empirical hypotheses below. In the results, each is treate
 \section{Related Work and Positioning}
 \label{sec:related}
 
-The closest prior work falls into several groups: quantum kernel theory \cite{havlicek2019supervised,schuld2019quantum,huang2021power,thanasilp2024exponential}, quantum natural language processing \cite{coecke2020mathematics,lorenz2021qnlp,disipio2021dawn,garg2024quantum,shukla2023quantum,rahevar2026quantum}, QML for cybersecurity and phishing detection \cite{ahmed2022quantum,alsarem2023phishing,ammar2026quantum,guddanti2026detecting,hridi2026batch,sagingalieva2022quantum,shahriyar2025phishvqc}, and classical text baselines \cite{chen2016xgboost,cortes1995support,cortes2012algorithms,pedregosa2011scikit,verma2017detecting}. Table \ref{tab:lit_taxonomy} groups the literature by their primary focus and structural assumptions.
+The closest prior work falls into several foundational groups: quantum kernel theory and speedups \cite{havlicek2019supervised,schuld2019quantum,liu2021rigorous,huang2021power,glick2022covariant,abbas2021power}, expressivity and concentration phenomena \cite{thanasilp2024exponential,bowles2024contextuality,kubler2021inductive,shaydulin2022importance,meyer2023exploiting}, quantum natural language processing \cite{coecke2020mathematics,lorenz2021qnlp,disipio2021hybrid,garg2024quantum,shukla2023quantum,rahevar2026quantum}, applied QML for cybersecurity and phishing detection \cite{ahmed2022quantum,alsarem2023phishing,ammar2026quantum,guddanti2026detecting,hridi2026batch,sagingalieva2022quantum,shahriyar2025phishvqc,lu2020quantum}, and classical text classification and distribution shift baselines \cite{almeida2011contributions,alsallami2023empirical,chen2016xgboost,cortes1995support,cortes2012algorithms,cova2008detection,devlin2019bert,li2026large,liu2019roberta,pedregosa2011scikit,reimers2019sentence,ren2022generating,song2020mpnet,verma2017detecting}. Table \ref{tab:lit_taxonomy} groups the literature by their primary focus and structural assumptions.
 
-\begin{table}[!htbp]
+\begin{table*}[!htbp]
 \centering
 \small
 \caption{Literature Positioning and Methodological Taxonomy.}
 \label{tab:lit_taxonomy}
 \setlength{\tabcolsep}{4pt}
-\begin{tabularx}{\textwidth}{p{3.2cm}p{3.4cm}p{3.2cm}X}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3.5cm}p{3.2cm}X}
 \toprule
 Literature Category & Core Mechanism & Representation Paradigm & Key Representative Venues \\
 \midrule
-Quantum Kernel Theory & Hilbert space mapping via unitary state preparation & Synthetic / Group-theoretic distributions & Nature '19 \cite{havlicek2019supervised}, PRL '19 \cite{schuld2019quantum}, Nat Comm '21 \cite{huang2021power} \\
-Expressivity \& Concentration & Theoretical bounds on fidelity concentration \& variance & Global unparameterized statevectors & Nat Comm '24 \cite{thanasilp2024exponential}, PRL '24 \cite{bowles2024contextuality}, NeurIPS '21 \cite{kubler2021inductive} \\
+Quantum Kernel Theory & Hilbert space mapping via unitary state preparation & Synthetic / Group-theoretic distributions & Nature '19 \cite{havlicek2019supervised}, PRL '19 \cite{schuld2019quantum}, Nature Phys '21 \cite{liu2021rigorous}, Nat Comm '21 \cite{huang2021power}, npj Quantum Inf '22 \cite{glick2022covariant} \\
+\midrule
+Expressivity \& Concentration & Theoretical bounds on fidelity concentration \& variance & Global unparameterized statevectors & Nat Comm '24 \cite{thanasilp2024exponential}, PRL '24 \cite{bowles2024contextuality}, NeurIPS '21 \cite{kubler2021inductive}, IEEE TQE '22 \cite{shaydulin2022importance}, PRX Quantum '23 \cite{meyer2023exploiting} \\
+\midrule
 Structural QNLP & Categorical DisCoCat grammars \& ZX-calculus & Syntactic parse trees ($N < 500$ sentences) & QNLP '20 \cite{coecke2020mathematics}, QST '21 \cite{lorenz2021qnlp} \\
-Statistical \& Embedding QNLP & Classical text embeddings fed to QSVC / VQC & TF-IDF, Word2Vec, Pretrained Transformers & CMES '26 \cite{rahevar2026quantum}, IEEE TQE '24 \cite{garg2024quantum}, Access '23 \cite{shukla2023quantum} \\
-Applied QML Cybersecurity & Quantum classifiers applied to phishing/intrusion & Tabular features / Small text splits (single seed) & IEEE QPAIN '26 \cite{hridi2026batch}, MAKE '26 \cite{ammar2026quantum}, ISACC '25 \cite{shahriyar2025phishvqc} \\
-Multi-Dataset Benchmarking & Controlled matched baselines across multiple corpora & Sparse TF-IDF + Dense Contextual Embeddings & \textbf{This Work} (Exp 23–47) \\
+\midrule
+Statistical \& Embedding QNLP & Classical text embeddings fed to QSVC / VQC & TF-IDF, Word2Vec, Pretrained Transformers & CMES '26 \cite{rahevar2026quantum}, IEEE TQE '24 \cite{garg2024quantum}, Access '23 \cite{shukla2023quantum}, IEEE TQE '21 \cite{disipio2021hybrid} \\
+\midrule
+Applied QML Cybersecurity & Quantum classifiers applied to phishing/intrusion & Tabular features / Small text splits (single seed) & IEEE QPAIN '26 \cite{hridi2026batch}, MAKE '26 \cite{ammar2026quantum}, ISACC '25 \cite{shahriyar2025phishvqc}, QMI '22 \cite{sagingalieva2022quantum}, IEEE Access '23 \cite{alsarem2023phishing}, PRResearch '20 \cite{lu2020quantum} \\
+\midrule
+Multi-Dataset Benchmarking & Controlled matched baselines across multiple corpora & Sparse TF-IDF + Dense Contextual Embeddings & ACM TOPS '23 \cite{alsallami2023empirical}, TPAMI '26 \cite{li2026large}, IEEE S\&P '22 \cite{ren2022generating}, \textbf{This Work} (Exp 23–47) \\
 \bottomrule
 \end{tabularx}
-\end{table}
+\end{table*}
 
 Table \ref{tab:lit_taxonomy} groups prior work by the kind of representation and baseline controls they evaluate. As highlighted in recent systematic reviews \cite{ammar2026quantum,li2026large}, prior QML text security evaluations have almost exclusively evaluated small sample sizes on single unvalidated splits without matched classical non-linear controls or domain-shift testing. Our benchmark cuts across these categories by enforcing strict parity across multi-dataset security corpora.
 
