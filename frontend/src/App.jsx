@@ -60,7 +60,7 @@ export default function App() {
         ok: false, 
         latency, 
         error: err.message, 
-        message: `Could not reach ${urlToTest}. Note: If your Render backend was idle, it may take 30-50s to wake up from cold start.` 
+        message: `Could not reach ${urlToTest}. Ensure the Docker backend container or local server is running on this port.` 
       });
     } finally {
       setIsPinging(false);
@@ -357,7 +357,7 @@ export default function App() {
                 cursor: 'pointer',
                 transition: 'all 0.15s ease'
               }}
-              title="Click to configure Render backend URL"
+              title="Click to configure backend API URL"
             >
               <span style={{
                 width: '8px',
@@ -1294,7 +1294,7 @@ export default function App() {
                     Backend API Connection
                   </h3>
                   <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
-                    Configure the live Render Python backend endpoint
+                    Configure the live Python backend endpoint (Docker / Local / Cloud)
                   </p>
                 </div>
               </div>
@@ -1308,13 +1308,13 @@ export default function App() {
 
             <div style={{ marginBottom: '18px' }}>
               <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                Backend Service URL (Render / Cloud / Local)
+                Backend Service URL (Docker / Local / Cloud)
               </label>
               <input
                 type="text"
                 value={tempApiUrl}
                 onChange={(e) => setTempApiUrl(e.target.value)}
-                placeholder="https://quantum-backend-xxxx.onrender.com"
+                placeholder="http://127.0.0.1:8000"
                 style={{
                   width: '100%',
                   padding: '10px 14px',
@@ -1368,7 +1368,7 @@ export default function App() {
               </div>
             )}
 
-            {/* Explanatory note for Render Free Tier */}
+            {/* Explanatory note for Docker / Local Deployment */}
             <div style={{
               background: '#f1f5f9',
               padding: '12px 14px',
@@ -1378,7 +1378,7 @@ export default function App() {
               lineHeight: 1.5,
               marginBottom: '20px'
             }}>
-              <strong>Render Free Tier Note:</strong> If your Render backend is sleeping due to inactivity, the first ping will wake it up (takes ~30–50 seconds). Once awake, requests execute with sub-second latency.
+              <strong>Docker Backend:</strong> Run <code>docker compose up --build</code> to start the FastAPI backend on port 8000. All inferences, statevectors, and metrics will process with sub-second latency.
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>

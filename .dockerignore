@@ -1,0 +1,32 @@
+# Version Control & OS
+.git
+.gitignore
+.DS_Store
+.vscode
+.idea
+.agents
+.gemini
+
+# Python virtual environment and caches
+.venv
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node / Frontend build artifacts
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Large documents & local builds
+*.docx
+*.pdf
+RESEARCH_PAPER*
+carousel_slides/
+paper/

@@ -2,8 +2,8 @@
 ### *Under Representation, Geometry, Generalization, and Computational Cost*
 
 [![Live Demo](https://img.shields.io/badge/Live%20Frontend-Vercel-blue?style=for-the-badge&logo=vercel)](https://quantum-three-hazel.vercel.app)
-[![API Backend](https://img.shields.io/badge/API%20Backend-Render%20(FastAPI)-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://quantum-backend-uxm8.onrender.com/docs)
-[![API Health](https://img.shields.io/badge/API%20Health-Online-success?style=for-the-badge)](https://quantum-backend-uxm8.onrender.com/api/health)
+[![API Backend](https://img.shields.io/badge/Docker-Backend%20(FastAPI)-2496ED?style=for-the-badge&logo=docker&logoColor=white)](Dockerfile)
+[![API Health](https://img.shields.io/badge/API-FastAPI%20REST-009688?style=for-the-badge&logo=fastapi&logoColor=white)](http://localhost:8000/docs)
 [![Paper PDF](https://img.shields.io/badge/Paper-Preprint%20PDF-red?style=for-the-badge&logo=adobeacrobatreader)](results/exp47/SAMPLE_PAPER.pdf)
 [![Paper DOCX](https://img.shields.io/badge/Paper-Word%20DOCX-2B579A?style=for-the-badge&logo=microsoftword&logoColor=white)](results/exp47/SAMPLE_RESEARCH_PAPER.docx)
 [![License](https://img.shields.io/badge/License-MIT-purple?style=for-the-badge)](LICENSE)
@@ -18,9 +18,9 @@ The Quantum Text Security Research Platform is deployed as a decoupled, full-sta
   * Interactive **Representation Lab** (Encoder screening, cosine clustering vs Hilbert dispersion).
   * Real-time **Multi-Model Inference & Vector Inspector** (Linear SVM, RBF SVM, QSVC).
   * In-distribution and out-of-distribution performance dashboards with full offline fallback data.
-* **⚡ Backend REST API (FastAPI + PyTorch)**: Hosted on **Render** at [https://quantum-backend-uxm8.onrender.com](https://quantum-backend-uxm8.onrender.com)
-  * **Interactive Swagger Documentation**: [https://quantum-backend-uxm8.onrender.com/docs](https://quantum-backend-uxm8.onrender.com/docs)
-  * **Health Check & Engine Status**: [https://quantum-backend-uxm8.onrender.com/api/health](https://quantum-backend-uxm8.onrender.com/api/health)
+* **⚡ Backend REST API (FastAPI + PyTorch)**: Containerized with **Docker** / Docker Compose
+  * **Interactive Swagger Documentation**: `http://localhost:8000/docs`
+  * **Health Check & Engine Status**: `http://localhost:8000/api/health`
   * **Live Endpoints**: `/api/predict`, `/api/statevector`, `/api/representations/candidates`, `/api/research/summary`
 
 ---
@@ -146,7 +146,7 @@ Equivalence Boundary:        ε = ±0.01 F1 (Two One-Sided Tests practical equiv
 ```
 quantum/
 ├── app/
-│   ├── api.py                     # FastAPI REST API service (Deployed on Render)
+│   ├── api.py                     # FastAPI REST API service (Containerized with Docker)
 │   ├── model_engine.py            # Live inference engine (QSVC, RBF, Linear)
 │   ├── schemas/                   # Pydantic request/response schemas
 │   └── research/
@@ -208,23 +208,37 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Run the Full-Stack Application Locally
+### 2. Run Backend with Docker (Recommended)
 
-**Start the FastAPI Backend (Render parity):**
+**Start the FastAPI Backend container:**
+```bash
+docker compose up --build
+```
+*Or using `docker run`:*
+```bash
+docker build -t quantum-backend .
+docker run -d --name quantum-backend -p 8000:8000 quantum-backend
+```
+
+- **Backend API**: `http://localhost:8000` (Interactive Docs: `http://localhost:8000/docs`)
+- **Health Check**: `http://localhost:8000/api/health`
+- **Frontend**: Hosted on Vercel at [https://quantum-three-hazel.vercel.app](https://quantum-three-hazel.vercel.app) (connects to your local or deployed backend)
+
+### 3. Run Locally without Docker
+
+**Start the FastAPI Backend:**
 ```bash
 uvicorn app.api:app --host 127.0.0.1 --port 8000 --reload
 ```
-Navigate to `http://127.0.0.1:8000/docs` to test the API endpoints.
 
-**Start the React Frontend (Vercel parity):**
+**Start the React Frontend:**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Navigate to `http://localhost:5173` to explore the interactive dashboard.
 
-### 3. Run Confirmation Experiments
+### 4. Run Confirmation Experiments
 ```bash
 # Execute 10-seed confirmation sweep (Exp 40)
 python3 experiments/40_confirmation_experiments.py
@@ -233,7 +247,7 @@ python3 experiments/40_confirmation_experiments.py
 python3 experiments/45_classical_baseline_audit.py
 ```
 
-### 4. Build Paper Artifacts
+### 5. Build Paper Artifacts
 ```bash
 # Compile LaTeX PDF
 tectonic results/exp47/SAMPLE_PAPER.tex
